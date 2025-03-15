@@ -84,7 +84,7 @@ export default function RFQDetailsPage() {
     const handleReasonChange = async (index: number, newReason: string) => {
         if (!evaluation) return;
 
-        const originalReason = evaluation.requirements_metadata[index]?.llm_evaluation?.reason || "";
+        const originalReason = evaluation.requirements_metadata[index]?.evaluation?.reason || "";
 
         // Track modified state
         if (newReason !== originalReason) {
@@ -101,8 +101,8 @@ export default function RFQDetailsPage() {
             ...evaluation.requirements_metadata,
             [index]: {
                 ...evaluation.requirements_metadata[index],
-                llm_evaluation: {
-                    ...evaluation.requirements_metadata[index].llm_evaluation,
+                evaluation: {
+                    ...evaluation.requirements_metadata[index].evaluation,
                     reason: newReason,
                 },
             },
@@ -144,7 +144,7 @@ export default function RFQDetailsPage() {
         if (!evaluation || !rfq) return;
 
         const requirementMetadata = evaluation.requirements_metadata[index];
-        const updatedReason = requirementMetadata?.llm_evaluation?.reason;
+        const updatedReason = requirementMetadata?.evaluation?.reason;
         if (!updatedReason || updatedReason === "") return;
 
         console.log("Reevaluating requirement:", {
@@ -236,7 +236,7 @@ export default function RFQDetailsPage() {
 
                                             <TableCell>
                                                 {(() => {
-                                                    const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
+                                                    const status = evaluation?.requirements_metadata[index]?.evaluation?.evaluation;
                                                     switch (status) {
                                                         case "ELIGIBLE":
                                                             return "✅";
@@ -262,7 +262,7 @@ export default function RFQDetailsPage() {
                                                         <textarea
                                                             className="w-full p-2 border rounded resize-none overflow-hidden"
                                                             value={
-                                                                evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || ""
+                                                                evaluation?.requirements_metadata[index]?.evaluation?.reason || ""
                                                             }
                                                             onChange={(e) => {
                                                                 handleReasonChange(index, e.target.value);
@@ -279,7 +279,7 @@ export default function RFQDetailsPage() {
                                                         className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
                                                         onClick={() => startEditing(index)}
                                                     >
-                                                        {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason ||
+                                                        {evaluation?.requirements_metadata[index]?.evaluation?.reason ||
                                                             "No reason provided"}
                                                     </div>
                                                 )}
@@ -291,7 +291,7 @@ export default function RFQDetailsPage() {
                                                     onClick={() => handleReevaluation(index)}
                                                     disabled={
                                                         !modifiedReasons.has(index) ||
-                                                        evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === "IN_PROGRESS"
+                                                        evaluation?.requirements_metadata[index]?.evaluation?.evaluation === "IN_PROGRESS"
                                                     }
                                                 >
                                                     Reevaluate

@@ -127,24 +127,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/company/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Companies */
-        get: operations["get_companies_company__get"];
-        put?: never;
-        /** Create Company */
-        post: operations["create_company_company__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/company/{company_id}": {
         parameters: {
             query?: never;
@@ -152,8 +134,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Company */
-        get: operations["get_company_company__company_id__get"];
+        get?: never;
         /** Update Company */
         put: operations["update_company_company__company_id__put"];
         post?: never;
@@ -184,13 +165,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** CompanyCreate */
-        CompanyCreate: {
-            /** Name */
-            name: string;
-            /** Facts */
-            facts: string[];
-        };
         /** CompanyResponse */
         CompanyResponse: {
             /** Id */
@@ -260,8 +234,7 @@ export interface components {
         RequirementMetadataResponse: {
             /** Requirement */
             requirement: string;
-            llm_evaluation: components["schemas"]["RequirementEvaluationResponse"];
-            human_evaluation: components["schemas"]["RequirementEvaluationResponse"];
+            evaluation: components["schemas"]["RequirementEvaluationResponse"];
         };
         /** UpdateRequirementEvaluationRequest */
         UpdateRequirementEvaluationRequest: {
@@ -602,90 +575,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyResponse"];
-                };
-            };
-        };
-    };
-    get_companies_company__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyResponse"][];
-                };
-            };
-        };
-    };
-    create_company_company__post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompanyCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_company_company__company_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

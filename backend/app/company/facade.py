@@ -9,7 +9,7 @@ async def get_company_context(id: str) -> str:
     
     return f"Company: {company.name} Facts: {company.facts}"
 
-async def update_company_facts(id: str, reason: str, updated_reason: str) -> CompanyDocument:
+async def update_company_facts(id: str, reason: str, updated_reason: str):
     company = await CompanyDocument.find_one(CompanyDocument.id == ObjectId(id))
     if company is None:
         raise ValueError("Company not found")

@@ -66,7 +66,6 @@ def _map_evaluation_to_response(evaluation: EvaluationDocument) -> EvaluationRes
         rfq_id=str(evaluation.rfq_id),
         requirements_metadata=[RequirementMetadataResponse(
             requirement=metadata.requirement,
-            llm_evaluation=_map_requirement_evaluation_to_response(metadata.llm_evaluation),
-            human_evaluation=_map_requirement_evaluation_to_response(metadata.human_evaluation)
+            evaluation=_map_requirement_evaluation_to_response(metadata.evaluation)
         ) for metadata in evaluation.requirements_metadata]
     )
