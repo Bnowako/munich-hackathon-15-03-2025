@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { getRFQ, requestEvaluation } from "@/lib/api";
-import { RFQResponse } from "@/lib/apiTypes";
+import { getEvaluation, getRFQ, requestEvaluation } from "@/lib/api";
+import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
+    const [evaluation, setEvaluation] = useState<EvaluationResponse | null>(null);
     const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
@@ -19,11 +20,8 @@ export default function RFQDetailsPage() {
             const rfqData = await getRFQ(id);
             setRFQ(rfqData);
             // Initialize empty notes for each requirement
-            const initialNotes = rfqData.requirements.reduce((acc, _, index) => {
-                acc[index] = '';
-                return acc;
-            }, {} as { [key: number]: string });
-            setRequirementNotes(initialNotes);
+            const ev = await getEvaluation(id);
+            setEvaluation(ev);
         })();
     }, [id]);
 

@@ -3,7 +3,7 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument, RequirementEvaluation
 from .schemas import EvaluationResponse, RequirementMetadataResponse, RequirementEvaluationResponse
-
+from .facade import create_evaluation
 router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
 @router.get("/{rfq_id}")
@@ -15,14 +15,15 @@ async def get_evaluation(rfq_id: str) -> EvaluationResponse:
     return _map_evaluation_to_response(evaluation)
 
 @router.put("/{rfq_id}")
-async def request_evaluation(rfq_id: str) -> EvaluationResponse:
+async def request_evaluation(rfq_id: str):
     evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
     if evaluation is not None:
         raise HTTPException(status_code=400, detail="Evaluation already exists")
     
+    await create_evaluation(rfq_id)
+    
     # todo request evaluation from llm
 
-    return _map_evaluation_to_response(evaluation) # type: ignore
 
 
 def _map_requirement_evaluation_to_response(evaluation: RequirementEvaluation | None) -> RequirementEvaluationResponse | None:
