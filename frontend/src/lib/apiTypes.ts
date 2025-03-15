@@ -4,8 +4,9 @@ import { components } from "./types";
 export type ExampleResponse = components["schemas"]["ExampleResponse"]
 export type PostExampleRequest = components["schemas"]["PostExampleRequest"]
 export type PutExampleRequest = components["schemas"]["PutExampleRequest"]
+export type RFQResponse = components["schemas"]["RFQResponse"]
 export type BaseMessage = {
-    type: "human" | "ai"  | "tool",
+    type: "human" | "ai" | "tool",
     content: string,
     conversation_id: string,
     tool_calls?: {

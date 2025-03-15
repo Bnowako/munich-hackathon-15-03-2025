@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import createClient from "openapi-fetch";
 import { paths } from "./types";
-import { ExampleResponse, PostExampleRequest, PutExampleRequest } from "./apiTypes";
+import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse } from "./apiTypes";
 
 const client = createClient<paths>({baseUrl: '/api'});
 
@@ -45,3 +45,16 @@ export async function deleteExample(exampleId: string): Promise<void> {
     const { error } = await client.DELETE("/examples/{example_id}", {params: {path: {example_id: exampleId}}});
     if (error) handleApiError(error);
 };
+export async function getRFQs(): Promise<RFQResponse[]> {
+    const { data, error } = await client.GET("/rfq/");
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as RFQResponse[];
+}
+
+export async function getRFQ(id: string): Promise<RFQResponse> {
+    const { data, error } = await client.GET("/rfq/{rfq_id}", {params: {path: {rfq_id: id}}});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as RFQResponse;
+}
