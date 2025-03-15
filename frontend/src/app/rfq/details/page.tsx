@@ -1,7 +1,12 @@
-"use client"
+"use client";
 
 import { useEffect, useState, useRef } from "react";
-import { getEvaluation, getRFQ, requestEvaluation, updateRequirementEvaluation } from "@/lib/api";
+import {
+    getEvaluation,
+    getRFQ,
+    requestEvaluation,
+    updateRequirementEvaluation,
+} from "@/lib/api";
 import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +17,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+import Link from "next/link";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -23,8 +29,9 @@ export default function RFQDetailsPage() {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
+    // Sync isEditing with ref
     useEffect(() => {
         isEditingRef.current = isEditing;
     }, [isEditing]);
@@ -32,44 +39,58 @@ export default function RFQDetailsPage() {
     useEffect(() => {
         if (!id) return;
 
-        (async () => {
-            const rfqData = await getRFQ(id);
-            setRFQ(rfqData);
-            const ev = await getEvaluation(id);
-            setEvaluation(ev);
+        let intervalId: NodeJS.Timeout | null = null;
+        let isMounted = true;
 
-            let intervalId: NodeJS.Timeout | null = null;
+        async function fetchData() {
+            try {
+                const rfqData = await getRFQ(id);
+                if (!isMounted) return;
+                setRFQ(rfqData);
 
-            intervalId = setInterval(async () => {
-                if (!isEditingRef.current) {
-                    const updatedEv = await getEvaluation(id);
-                    setEvaluation(updatedEv);
-                }
-            }, 1000);
+                const ev = await getEvaluation(id);
+                if (!isMounted) return;
+                setEvaluation(ev);
 
-            return () => {
-                if (intervalId) clearInterval(intervalId);
-            };
-        })();
+                // Set up interval to update evaluation every second
+                intervalId = setInterval(async () => {
+                    if (!isEditingRef.current) {
+                        const updatedEv = await getEvaluation(id);
+                        if (!isMounted) return;
+                        setEvaluation(updatedEv);
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error("Error fetching RFQ data:", error);
+            }
+        }
+
+        fetchData();
+
+        // Cleanup function to clear the interval when the component unmounts
+        return () => {
+            isMounted = false;
+            if (intervalId) clearInterval(intervalId);
+        };
     }, [id]);
 
     const handleNoteChange = (index: number, note: string) => {
-        setRequirementNotes(prev => ({
+        setRequirementNotes((prev) => ({
             ...prev,
-            [index]: note
+            [index]: note,
         }));
     };
 
     const handleReasonChange = async (index: number, newReason: string) => {
         if (!evaluation) return;
 
-        const originalReason = evaluation.requirements_metadata[index]?.llm_evaluation?.reason || '';
+        const originalReason = evaluation.requirements_metadata[index]?.llm_evaluation?.reason || "";
 
         // Track modified state
         if (newReason !== originalReason) {
-            setModifiedReasons(prev => new Set(prev).add(index));
+            setModifiedReasons((prev) => new Set(prev).add(index));
         } else {
-            setModifiedReasons(prev => {
+            setModifiedReasons((prev) => {
                 const newSet = new Set(prev);
                 newSet.delete(index);
                 return newSet;
@@ -82,15 +103,19 @@ export default function RFQDetailsPage() {
                 ...evaluation.requirements_metadata[index],
                 llm_evaluation: {
                     ...evaluation.requirements_metadata[index].llm_evaluation,
-                    reason: newReason
-                }
-            }
+                    reason: newReason,
+                },
+            },
         };
 
-        setEvaluation(prev => prev ? {
-            ...prev,
-            requirements_metadata: updatedMetadata
-        } : null);
+        setEvaluation((prev) =>
+            prev
+                ? {
+                    ...prev,
+                    requirements_metadata: updatedMetadata,
+                }
+                : null
+        );
     };
 
     // Reset modified state when new evaluation data comes in
@@ -102,7 +127,7 @@ export default function RFQDetailsPage() {
         if (!rfq) return;
         const evaluation = await requestEvaluation(rfq.id);
         console.log(evaluation);
-    }
+    };
 
     const startEditing = (index: number) => {
         // Switch to editing the new textarea
@@ -120,9 +145,9 @@ export default function RFQDetailsPage() {
 
         const requirementMetadata = evaluation.requirements_metadata[index];
         const updatedReason = requirementMetadata?.llm_evaluation?.reason;
-        if (!updatedReason || updatedReason === '') return;
+        if (!updatedReason || updatedReason === "") return;
 
-        console.log('Reevaluating requirement:', {
+        console.log("Reevaluating requirement:", {
             index,
             metadata: requirementMetadata,
             updatedReason,
@@ -130,16 +155,16 @@ export default function RFQDetailsPage() {
 
         const updatedEvaluation = await updateRequirementEvaluation(rfq.id, {
             requirement: requirementMetadata.requirement,
-            updated_reason: updatedReason
+            updated_reason: updatedReason,
         });
 
         // Clear the modified state for this requirement
-        setModifiedReasons(prev => {
+        setModifiedReasons((prev) => {
             const newSet = new Set(prev);
             newSet.delete(index);
             return newSet;
         });
-        
+
         // Close all textareas and exit editing mode
         setEditingReasons(new Set());
         setIsEditing(false);
@@ -148,34 +173,35 @@ export default function RFQDetailsPage() {
     const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = e.target;
         // Reset height to auto to get the correct scrollHeight
-        textarea.style.height = 'auto';
+        textarea.style.height = "auto";
         // Set the height to match the content
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
     if (!id) {
-        return <div className="container mx-auto p-5">
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-                No RFQ ID provided
+        return (
+            <div className="container mx-auto p-5">
+                <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+                    No RFQ ID provided
+                </div>
             </div>
-        </div>;
+        );
     }
 
     if (!rfq) {
-        return <div className="container mx-auto p-5">
-            <div className="animate-pulse">Loading...</div>
-        </div>;
+        return (
+            <div className="container mx-auto p-5">
+                <div className="animate-pulse">Loading...</div>
+            </div>
+        );
     }
 
     return (
         <div className="container mx-auto p-5">
             <div className="mb-4">
-                <button
-                    onClick={() => window.history.back()}
-                    className="text-blue-600 hover:text-blue-800"
-                >
+                <Link href="/rfq" className="text-blue-600 hover:text-blue-800">
                     ← Back to Overview
-                </button>
+                </Link>
             </div>
 
             <div className="bg-white shadow-lg rounded-lg p-6">
@@ -188,7 +214,7 @@ export default function RFQDetailsPage() {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button onClick={() => requestEvaluationClicked()}>Request evaluation</Button>
+                        <Button onClick={requestEvaluationClicked}>Request evaluation</Button>
                     </div>
 
                     <div>
@@ -212,21 +238,21 @@ export default function RFQDetailsPage() {
                                                 {(() => {
                                                     const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
                                                     switch (status) {
-                                                        case 'ELIGIBLE':
-                                                            return '✅';
-                                                        case 'NOT_ELIGIBLE':
-                                                            return '🛑';
-                                                        case 'IN_PROGRESS':
+                                                        case "ELIGIBLE":
+                                                            return "✅";
+                                                        case "NOT_ELIGIBLE":
+                                                            return "🛑";
+                                                        case "IN_PROGRESS":
                                                             return (
                                                                 <div className="flex items-center">
                                                                     <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
                                                                     <span className="ml-2">🤖 In progress</span>
                                                                 </div>
                                                             );
-                                                        case 'INITIAL':
-                                                            return '🫎';
+                                                        case "INITIAL":
+                                                            return "🫎";
                                                         default:
-                                                            return '🫥';
+                                                            return "🫥";
                                                     }
                                                 })()}
                                             </TableCell>
@@ -235,17 +261,15 @@ export default function RFQDetailsPage() {
                                                     <div className="flex flex-col gap-2">
                                                         <textarea
                                                             className="w-full p-2 border rounded resize-none overflow-hidden"
-                                                            value={evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || ''}
+                                                            value={
+                                                                evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || ""
+                                                            }
                                                             onChange={(e) => {
                                                                 handleReasonChange(index, e.target.value);
                                                                 autoResizeTextArea(e);
                                                             }}
                                                             onFocus={(e) => autoResizeTextArea(e)}
-                                                            onBlur={() => {
-                                                                // Optional: if you want to stop editing when clicking outside
-                                                                // stopEditing();
-                                                            }}
-                                                            style={{ height: 'auto' }}
+                                                            style={{ height: "auto" }}
                                                             rows={1}
                                                             autoFocus
                                                         />
@@ -255,7 +279,8 @@ export default function RFQDetailsPage() {
                                                         className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
                                                         onClick={() => startEditing(index)}
                                                     >
-                                                        {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || 'No reason provided'}
+                                                        {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason ||
+                                                            "No reason provided"}
                                                     </div>
                                                 )}
                                             </TableCell>
@@ -266,7 +291,7 @@ export default function RFQDetailsPage() {
                                                     onClick={() => handleReevaluation(index)}
                                                     disabled={
                                                         !modifiedReasons.has(index) ||
-                                                        evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === 'IN_PROGRESS'
+                                                        evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === "IN_PROGRESS"
                                                     }
                                                 >
                                                     Reevaluate
