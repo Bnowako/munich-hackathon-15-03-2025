@@ -59,7 +59,7 @@ def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> Parse
         cpv_codes=lot_cpv_codes, # type: ignore
         procurement_project_lot=project_procurement_lot, #type: ignore
         
-        raw_xml=xml_dict
+        raw_xml=raw
     )
 
 
@@ -91,6 +91,8 @@ async def main(save_to_db: bool = False):
     pased_rfqs = await parse_xml_files('resources', max_files=50)
 
     for i, rfq in enumerate(pased_rfqs):
+        if i >= 5:
+            break
         logger.info(f"Inserting document number {i}: {rfq.title}")
         if save_to_db:
             doc = RFQDocument(parsed=rfq)
@@ -99,4 +101,4 @@ async def main(save_to_db: bool = False):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(save_to_db=False))
+    asyncio.run(main(save_to_db=True))

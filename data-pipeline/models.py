@@ -10,7 +10,7 @@ class ParsedXmlRfQ(BaseModel):
     description: str
     procurement_project_lot: list[Dict[str, Any]]
     cpv_codes: list[str]
-    raw_xml: Dict[str, Any]
+    raw_xml: str
 
 class EnhancedRFQ(BaseModel):
     title: str
