@@ -1,6 +1,7 @@
 import asyncio
 from pathlib import Path
 from typing import Any, Dict
+from pydantic import BaseModel
 import xmltodict
 import logging
 
@@ -13,15 +14,23 @@ from beanie import Document
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-
-class RFQDocument(Document):
+class ParsedXmlRfQ(BaseModel):
     type: Literal["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice", "urn:ContractAwardNotice", "pin:PriorInformationNotice", "cn:ContractNotice", "can:ContractAwardNotice", "urn:PriorInformationNotice"]
     title: str
     description: str
     procurement_project_lot: list[Dict[str, Any]]
     cpv_codes: list[str]
+    raw_xml: Dict[str, Any]
+
+class EnhancedRFQ(BaseModel):
+    title: str
+    description: str
     requirements: list[str]
-    raw: str
+
+
+class RFQDocument(Document):
+    parsed: ParsedXmlRfQ
+    enhanced: EnhancedRFQ | None = None
 
 async def init_db():
     # Create Motor client
@@ -31,7 +40,7 @@ async def init_db():
     await init_beanie(database=client.db, document_models=[RFQDocument]) # type: ignore
 
 
-def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDocument:
+def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> ParsedXmlRfQ:
     rfq_type = list(xml_dict.keys())[0]
     
     if rfq_type not in ["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice", "urn:ContractAwardNotice", "pin:PriorInformationNotice", "cn:ContractNotice", "can:ContractAwardNotice", "urn:PriorInformationNotice"]:
@@ -71,7 +80,7 @@ def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDo
             lot_cpv = lot_tag["#text"] # type: ignore
             lot_cpv_codes.append(lot_cpv) # type: ignore
 
-    return RFQDocument(
+    return ParsedXmlRfQ(
         type=rfq_type, # type: ignore
         title=title, # type: ignore
         description=description, # type: ignore
@@ -79,9 +88,7 @@ def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDo
         cpv_codes=lot_cpv_codes, # type: ignore
         procurement_project_lot=project_procurement_lot, #type: ignore
         
-        requirements=["todo"],
-        
-        raw=raw
+        raw_xml=xml_dict
     )
 
 
@@ -91,7 +98,7 @@ async def parse_xml_files(folder: str, max_files: int = 10):
     folder_path = Path(folder)
     logger.info(f"absolute path: {folder_path.absolute()}")
     
-    result: list[RFQDocument] = []
+    result: list[ParsedXmlRfQ] = []
     for i, xml_file in enumerate(folder_path.glob('*.xml')):
         if i >= max_files:
             break
@@ -108,14 +115,14 @@ async def parse_xml_files(folder: str, max_files: int = 10):
             
     return result
 
-
 async def main():
     await init_db()
-    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=50)
+    pased_rfqs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=50)
 
-    # for doc in docs:
-    #     logger.info(f"Inserting document: {doc.title}")
-    #     await doc.insert()
+    for i, rfq in enumerate(pased_rfqs):
+        logger.info(f"Inserting document number {i}: {rfq.title}")
+        doc = RFQDocument(parsed=rfq)
+        await doc.insert()
 
 
 
