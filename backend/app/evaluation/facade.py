@@ -57,7 +57,7 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument):
         evaluation.requirements_metadata[index].llm_evaluation = updated_llm_evaluation
         
         await evaluation.save()
-        await asyncio.sleep(4)
+        await asyncio.sleep(2)
 
         updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
             "evaluation": "ELIGIBLE",
