@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from .example.router import router as example_router
 from .example.models import ExampleDocument
 from .chat.router import router as chat_router
-from .rfq.models import RFQDocument
+from .rfq.models import EnhancedRFQ, ParsedXmlRfQ, RFQDocument
 from .rfq.rfq_mock import rfq_mock
 from .rfq.router import router as rfq_router
 from .evaluation.models import EvaluationDocument
@@ -50,33 +50,6 @@ async def db_lifespan(app: MongoFastAPI):
         RFQDocument,
         EvaluationDocument
     ])
-    
-    existing_rfq = await RFQDocument.find_one(RFQDocument.title == "Mock RFQ")
-    if not existing_rfq:
-        logger.info("Inserting mock RFQ")
-        mock_doc = RFQDocument(
-            title="Mock RFQ",
-            description="Mock description",
-            requirements=["Requirement 1", "Requirement 2", "Requirement 3"],
-            raw=rfq_mock
-        )
-        await mock_doc.insert()
-        logger.info("Mock RFQ inserted")
-        mock_rfq_id = mock_doc.id
-    else:
-        mock_rfq_id = existing_rfq.id
-
-    existing_evaluation = await EvaluationDocument.find_one({"rfq_id": mock_rfq_id})
-    if not existing_evaluation:
-        logger.info("Inserting mock evaluation")
-        mock_doc = EvaluationDocument(
-            rfq_id=str(mock_rfq_id),
-            requirements_to_notes=[{"Requirement 1": "Note 1"}, {"Requirement 2": "Note 2"}, {"Requirement 3": "Note 3"}]
-        )
-        await mock_doc.insert()
-        logger.info("Mock evaluation inserted")
-    else:
-        logger.info("Mock evaluation already exists")
 
     yield
     app.mongodb_client.close()

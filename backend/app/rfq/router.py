@@ -11,10 +11,9 @@ async def get_rfqs() -> List[RFQResponse]:
     rfqs = await RFQDocument.find_all().to_list()
     return [RFQResponse(
         id=str(rfq.id),
-        title=rfq.title,
-        description=rfq.description,
-        requirements=rfq.requirements,
-        raw=rfq.raw
+        title=rfq.enhanced.title,
+        description=rfq.enhanced.description,
+        requirements=rfq.enhanced.requirements,
     ) for rfq in rfqs]
 
 @router.get("/{rfq_id}")
@@ -25,8 +24,7 @@ async def get_rfq(rfq_id: str) -> RFQResponse:
     
     return RFQResponse(
         id=str(rfq.id),
-        title=rfq.title,
-        description=rfq.description,
-        requirements=rfq.requirements,
-        raw=rfq.raw
+        title=rfq.enhanced.title,
+        description=rfq.enhanced.description,
+        requirements=rfq.enhanced.requirements,
     )
