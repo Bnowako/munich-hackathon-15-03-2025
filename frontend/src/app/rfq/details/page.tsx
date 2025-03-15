@@ -105,7 +105,14 @@ export default function RFQDetailsPage() {
                                                 {req}
                                             </td>
                                             <td className="px-6 py-4 text-sm">
-                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation || 'No evaluation yet'}
+                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === "IN_PROGRESS" ? (
+                                                    <div className="flex items-center">
+                                                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                                                        <span className="ml-2">Evaluating...</span>
+                                                    </div>
+                                                ) : (
+                                                    evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation || 'No evaluation yet'
+                                                )}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <textarea

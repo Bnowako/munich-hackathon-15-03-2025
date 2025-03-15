@@ -217,11 +217,8 @@ export interface components {
         };
         /** RequirementEvaluationResponse */
         RequirementEvaluationResponse: {
-            /**
-             * Evaluation
-             * @enum {string}
-             */
-            evaluation: "ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN";
+            /** Evaluation */
+            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS") | null;
             /** Reason */
             reason?: string | null;
         };
@@ -499,7 +496,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EvaluationResponse"];
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

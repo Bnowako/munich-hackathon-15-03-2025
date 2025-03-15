@@ -4,6 +4,7 @@ from app.rfq.models import RFQDocument
 from bson import ObjectId
 from app.evaluation.schemas import EvaluationResponse
 from app.evaluation.models import RequirementEvaluation, EvaluationDocument, RequirementMetadata
+from app.evaluation.llm import evaluate_requirement
 
 import logging
 logger = logging.getLogger(__name__)
@@ -57,11 +58,12 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument):
         evaluation.requirements_metadata[index].llm_evaluation = updated_llm_evaluation
         
         await evaluation.save()
-        await asyncio.sleep(2)
+
+        llm_evaluation = await evaluate_requirement(metadata.requirement, "Company: Railway Co. Facts: Railway Co. is a railway company that builds railways and sells railway tickets")
 
         updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
-            "evaluation": "ELIGIBLE",
-            "reason": "LLM evaluation"
+            "evaluation": llm_evaluation.evaluation,
+            "reason": llm_evaluation.reason
         })
         evaluation.requirements_metadata[index].llm_evaluation = updated_llm_evaluation
         await evaluation.save()
