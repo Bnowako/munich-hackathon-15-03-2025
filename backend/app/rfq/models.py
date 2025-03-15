@@ -9,8 +9,5 @@ class RFQDocument(Document):
     requirements: list[str]
     raw: str
 
-    class Settings:
-        name = "rfq"
-
     
     
