@@ -5,11 +5,21 @@ import { getEvaluation, getRFQ, requestEvaluation } from "@/lib/api";
 import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
     const [evaluation, setEvaluation] = useState<EvaluationResponse | null>(null);
     const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
+    const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
+    const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
 
@@ -37,11 +47,93 @@ export default function RFQDetailsPage() {
         }));
     };
 
+    const handleReasonChange = async (index: number, newReason: string) => {
+        if (!evaluation) return;
+        
+        const originalReason = evaluation.requirements_metadata[index]?.llm_evaluation?.reason || '';
+        
+        // Track modified state
+        if (newReason !== originalReason) {
+            setModifiedReasons(prev => new Set(prev).add(index));
+        } else {
+            setModifiedReasons(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(index);
+                return newSet;
+            });
+        }
+
+        const updatedMetadata = {
+            ...evaluation.requirements_metadata,
+            [index]: {
+                ...evaluation.requirements_metadata[index],
+                llm_evaluation: {
+                    ...evaluation.requirements_metadata[index].llm_evaluation,
+                    reason: newReason
+                }
+            }
+        };
+        
+        setEvaluation(prev => prev ? {
+            ...prev,
+            requirements_metadata: updatedMetadata
+        } : null);
+    };
+
+    // Reset modified state when new evaluation data comes in
+    useEffect(() => {
+        setModifiedReasons(new Set());
+    }, [id]);
+
     const requestEvaluationClicked = async () => {
         if (!rfq) return;
         const evaluation = await requestEvaluation(rfq.id);
         console.log(evaluation);
     }
+
+    const startEditing = (index: number) => {
+        setEditingReasons(prev => new Set(prev).add(index));
+    };
+
+    const stopEditing = (index: number) => {
+        setEditingReasons(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(index);
+            return newSet;
+        });
+    };
+
+    const handleReevaluation = (index: number) => {
+        if (!evaluation) return;
+        
+        const requirementMetadata = evaluation.requirements_metadata[index];
+        const updatedReason = requirementMetadata?.llm_evaluation?.reason;
+        
+        
+
+        console.log('Reevaluating requirement:', {
+            index,
+            metadata: requirementMetadata,
+            updatedReason,
+        });
+        
+
+
+        // Clear the modified state for this requirement
+        setModifiedReasons(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(index);
+            return newSet;
+        });
+    };
+
+    const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const textarea = e.target;
+        // Reset height to auto to get the correct scrollHeight
+        textarea.style.height = 'auto';
+        // Set the height to match the content
+        textarea.style.height = `${textarea.scrollHeight}px`;
+    };
 
     if (!id) {
         return <div className="container mx-auto p-5">
@@ -84,55 +176,91 @@ export default function RFQDetailsPage() {
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Requirements</h2>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Requirement
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Evaluation
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Reason
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="max-w-[300px]">Requirement</TableHead>
+                                        <TableHead>Evaluation</TableHead>
+                                        <TableHead className="max-w-[300px]">Reason</TableHead>
+                                        <TableHead>Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {rfq.requirements.map((req, index) => (
-                                        <tr key={index}>
-                                            <td className="px-6 py-4 text-sm text-gray-900">
-                                                {req}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm">
-                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === "IN_PROGRESS" ? (
-                                                    <div className="flex items-center">
-                                                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                                                        <span className="ml-2">🤖 In progress</span>
+                                        <TableRow key={index}>
+                                            <TableCell className="max-w-[150px]">{req}</TableCell>
+                                            
+                                            <TableCell>
+                                                {(() => {
+                                                    const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
+                                                    switch(status) {
+                                                        case 'ELIGIBLE':
+                                                            return '✅';
+                                                        case 'NOT_ELIGIBLE':
+                                                            return '🛑';
+                                                        case 'IN_PROGRESS':
+                                                            return (
+                                                                <div className="flex items-center">
+                                                                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+                                                                    <span className="ml-2">🤖 In progress</span>
+                                                                </div>
+                                                            );
+                                                        default:
+                                                            return '🫥';
+                                                    }
+                                                })()}
+                                            </TableCell>
+                                            <TableCell className="max-w-[300px]">
+                                                {editingReasons.has(index) ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <textarea
+                                                            className="w-full p-2 border rounded resize-none overflow-hidden"
+                                                            value={evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || ''}
+                                                            onChange={(e) => {
+                                                                handleReasonChange(index, e.target.value);
+                                                                autoResizeTextArea(e);
+                                                            }}
+                                                            onFocus={(e) => autoResizeTextArea(e)}
+                                                            style={{ height: 'auto' }}
+                                                            rows={1}
+                                                            autoFocus
+                                                        />
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button 
+                                                                variant="outline" 
+                                                                size="sm"
+                                                                onClick={() => stopEditing(index)}
+                                                            >
+                                                                Done
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 ) : (
-                                                    (() => {
-                                                        const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
-                                                        switch(status) {
-                                                            case 'ELIGIBLE':
-                                                                return '✅';
-                                                            case 'NOT_ELIGIBLE':
-                                                                return '🛑';
-                                                            case 'IN_PROGRESS':
-                                                                return '🤖';
-                                                            default:
-                                                                return '🫥';
-                                                        }
-                                                    })()
+                                                    <div 
+                                                        className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
+                                                        onClick={() => startEditing(index)}
+                                                    >
+                                                        {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || 'No reason provided'}
+                                                    </div>
                                                 )}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-900">
-                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || 'No reason provided'}
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Button 
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleReevaluation(index)}
+                                                    disabled={
+                                                        !modifiedReasons.has(index) || 
+                                                        evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === 'IN_PROGRESS'
+                                                    }
+                                                >
+                                                    Reevaluate
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                 </div>
