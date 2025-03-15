@@ -19,6 +19,13 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -27,6 +34,8 @@ export default function RFQDetailsPage() {
     const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
     const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
     const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [selectedRequirement, setSelectedRequirement] = useState<number | null>(null);
     const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
@@ -44,18 +53,18 @@ export default function RFQDetailsPage() {
 
         async function fetchData() {
             try {
-                const rfqData = await getRFQ(id);
+                const rfqData = await getRFQ(id!);
                 if (!isMounted) return;
                 setRFQ(rfqData);
 
-                const ev = await getEvaluation(id);
+                const ev = await getEvaluation(id!);
                 if (!isMounted) return;
                 setEvaluation(ev);
 
                 // Set up interval to update evaluation every second
                 intervalId = setInterval(async () => {
                     if (!isEditingRef.current) {
-                        const updatedEv = await getEvaluation(id);
+                        const updatedEv = await getEvaluation(id!);
                         if (!isMounted) return;
                         setEvaluation(updatedEv);
                     }
@@ -178,6 +187,11 @@ export default function RFQDetailsPage() {
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
+    const handleRequirementClick = (index: number) => {
+        setSelectedRequirement(index);
+        setDialogOpen(true);
+    };
+
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -232,8 +246,12 @@ export default function RFQDetailsPage() {
                                 <TableBody>
                                     {rfq.requirements.map((req, index) => (
                                         <TableRow key={index}>
-                                            <TableCell className="max-w-[150px]">{req.requirement}</TableCell>
-
+                                            <TableCell 
+                                                className="max-w-[150px] cursor-pointer hover:bg-gray-50"
+                                                onClick={() => handleRequirementClick(index)}
+                                            >
+                                                {req.requirement}
+                                            </TableCell>
                                             <TableCell>
                                                 {(() => {
                                                     const status = evaluation?.requirements_metadata[index]?.evaluation?.evaluation;
@@ -305,6 +323,36 @@ export default function RFQDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Requirement Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        {selectedRequirement !== null && rfq && evaluation && (
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">
+                                    Requirement: {rfq.requirements[selectedRequirement].requirement}
+                                </h3>
+                                <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+                                    <pre className="text-sm whitespace-pre-wrap">
+                                        {JSON.stringify(
+                                            {
+                                                requirement: rfq.requirements[selectedRequirement],
+                                                evaluation: evaluation.requirements_metadata[selectedRequirement],
+                                                rfq: rfq,
+                                            },
+                                            null,
+                                            2
+                                        )}
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
