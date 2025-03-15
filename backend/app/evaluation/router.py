@@ -5,6 +5,9 @@ from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument, RequirementEvaluation
 from .schemas import EvaluationResponse, RequirementMetadataResponse, RequirementEvaluationResponse
 from .facade import create_blank_evaluation, invoke_llm_evaluation
+
+import logging
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
 @router.get("/{rfq_id}")
@@ -25,6 +28,7 @@ async def request_evaluation(rfq_id: str):
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
+    logger.info(f"Requesting evaluation for {rfq_id}")
     asyncio.create_task(invoke_llm_evaluation(evaluation))
 
 

@@ -43,8 +43,18 @@ async def create_blank_evaluation(rfq_id: str):
     
 
 async def invoke_llm_evaluation(evaluation: EvaluationDocument):
-    for metadata in evaluation.requirements_metadata:
-        metadata.llm_evaluation.evaluation = "ELIGIBLE"
-        metadata.llm_evaluation.reason = "LLM evaluation"
+    logger.info(f"Invoking LLM evaluation for {evaluation.rfq_id}")
+    
+    for index, metadata in enumerate(evaluation.requirements_metadata):
+        logger.info(f"Evaluating requirement: {metadata.requirement}")
+        
+        # Create a new instance of the nested model with updated values
+        updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
+            "evaluation": "ELIGIBLE",
+            "reason": "LLM evaluation"
+        })
+        # Reassign the new instance back to the list
+        evaluation.requirements_metadata[index].llm_evaluation = updated_llm_evaluation
+        
         await evaluation.save()
         await asyncio.sleep(4)
