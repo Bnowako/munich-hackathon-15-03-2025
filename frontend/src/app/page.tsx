@@ -67,7 +67,7 @@ export default function Page() {
     <Card>
       <CardHeader>
         <CardTitle>RFQs by Status</CardTitle>
-        <CardDescription>Showing RFQs by status for the current period</CardDescription>
+        <CardDescription>Showing RFQs with updates in the last 30 days</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -88,6 +88,10 @@ export default function Page() {
           </BarChart>
         </ChartContainer>
       </CardContent>
+      <CardFooter className="flex items-center text-sm text-muted-foreground">
+        <TrendingUp className="mr-2 h-4 w-4 text-green-500" />
+        1 new RFQ added
+      </CardFooter>
     </Card>
   )
 }
