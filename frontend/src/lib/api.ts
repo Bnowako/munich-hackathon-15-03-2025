@@ -100,3 +100,10 @@ export async function updateCompany(id: string, company: CompanyUpdate): Promise
     if (!data) throw new Error("No data returned");
     return data as CompanyResponse;
 }
+
+export async function getCurrentCompany(): Promise<CompanyResponse> {
+    const { data, error } = await client.GET("/company/current");
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as CompanyResponse;
+}

@@ -6,6 +6,15 @@ from .schemas import CompanyResponse, CompanyCreate, CompanyUpdate
 
 router = APIRouter(prefix="/company", tags=["company"])
 
+@router.get("/current")
+async def get_current_company() -> CompanyResponse:
+    company = await CompanyDocument.find_one(CompanyDocument.name == "Railway Co")
+    return CompanyResponse(
+        id=str(company.id),
+        name=company.name,
+        facts=company.facts,
+    )
+
 @router.get("/")
 async def get_companies() -> List[CompanyResponse]:
     companies = await CompanyDocument.find().to_list()

@@ -41,7 +41,7 @@ export default function OverviewPage() {
 
     return (
         <div className="container mx-auto">
-            <h1 className="text-2xl font-bold my-5">RFQ Overview</h1>
+            <h1 className="text-2xl font-bold my-5">RFQs</h1>
             <div>
                 {data && columns &&
                     <DataTable
