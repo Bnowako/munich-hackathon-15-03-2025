@@ -9,6 +9,10 @@ from dotenv import load_dotenv
 from .example.router import router as example_router
 from .example.models import ExampleDocument
 from .chat.router import router as chat_router
+from .rfq.models import RFQDocument
+from .rfq.rfq_mock import rfq_mock
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -37,6 +41,33 @@ async def db_lifespan(app: MongoFastAPI):
         raise Exception("Problem connecting to database cluster. For local development run docker run -d -p 27017:27017 mongo")
     else:
         logger.info("Connected to database cluster.")
+    
+    await init_beanie(database=app.database, document_models=[
+        ExampleDocument,
+        RFQDocument
+        ])
+    
+    if not await RFQDocument.find_one(RFQDocument.title == "Mock RFQ"):
+        logger.info("Inserting mock RFQ")
+        mock_doc = RFQDocument(
+            title="Mock RFQ",
+            description="Mock description",
+            requirements=["Requirement 1", "Requirement 2", "Requirement 3"],
+            raw=rfq_mock
+        )
+        await mock_doc.insert()
+        logger.info("Mock RFQ inserted")
+    else:
+        logger.info("Mock RFQ already exists")
+
+
+    await init_beanie(
+        database=app.database,
+        document_models=[
+            ExampleDocument,
+        ],
+    )
+
     
     await init_beanie(database=app.database, document_models=[
         ExampleDocument,
