@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { getRFQ } from "@/lib/api";
-import { RFQResponse } from "@/lib/apiTypes";
+import { getEvaluation, getRFQ, requestEvaluation } from "@/lib/api";
+import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
+    const [evaluation, setEvaluation] = useState<EvaluationResponse | null>(null);
     const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
@@ -18,11 +20,13 @@ export default function RFQDetailsPage() {
             const rfqData = await getRFQ(id);
             setRFQ(rfqData);
             // Initialize empty notes for each requirement
-            const initialNotes = rfqData.requirements.reduce((acc, _, index) => {
-                acc[index] = '';
-                return acc;
-            }, {} as { [key: number]: string });
-            setRequirementNotes(initialNotes);
+            const ev = await getEvaluation(id);
+            setEvaluation(ev);
+            const intervalId = setInterval(async () => {
+                const updatedEv = await getEvaluation(id);
+                setEvaluation(updatedEv);
+            }, 5000);
+            return () => clearInterval(intervalId);
         })();
     }, [id]);
 
@@ -32,6 +36,12 @@ export default function RFQDetailsPage() {
             [index]: note
         }));
     };
+
+    const requestEvaluationClicked = async () => {
+        if (!rfq) return;
+        const evaluation = await requestEvaluation(rfq.id);
+        console.log(evaluation);
+    }
 
     if (!id) {
         return <div className="container mx-auto p-5">
@@ -67,6 +77,10 @@ export default function RFQDetailsPage() {
                         <p className="text-gray-700 whitespace-pre-wrap">{rfq.description}</p>
                     </div>
 
+                    <div className="flex justify-end">
+                        <Button onClick={() => requestEvaluationClicked()}>Request evaluation</Button>
+                    </div>
+
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Requirements</h2>
                         <div className="overflow-x-auto">
@@ -75,6 +89,9 @@ export default function RFQDetailsPage() {
                                     <tr>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Requirement
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Evaluation
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Notes
@@ -86,6 +103,9 @@ export default function RFQDetailsPage() {
                                         <tr key={index}>
                                             <td className="px-6 py-4 text-sm text-gray-900">
                                                 {req}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation || 'No evaluation yet'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <textarea
