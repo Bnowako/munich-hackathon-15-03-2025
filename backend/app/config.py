@@ -13,7 +13,8 @@ from .rfq.models import RFQDocument
 from .rfq.router import router as rfq_router
 from .evaluation.models import EvaluationDocument
 from .evaluation.router import router as evaluation_router
-
+from .company.models import CompanyDocument
+from .company.router import router as company_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ async def db_lifespan(app: MongoFastAPI):
     await init_beanie(database=app.database, document_models=[
         ExampleDocument,
         RFQDocument,
-        EvaluationDocument
+        EvaluationDocument,
+        CompanyDocument
     ])
 
     yield
@@ -59,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router)
     app.include_router(rfq_router)
     app.include_router(evaluation_router)
+    app.include_router(company_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

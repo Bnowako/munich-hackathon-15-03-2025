@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import createClient from "openapi-fetch";
 import { paths } from "./types";
-import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse, EvaluationResponse } from "./apiTypes";
+import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse, EvaluationResponse, CompanyResponse, CompanyCreate, CompanyUpdate } from "./apiTypes";
 
 const client = createClient<paths>({baseUrl: '/api'});
 
@@ -72,4 +72,32 @@ export async function requestEvaluation(id: string): Promise<EvaluationResponse>
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as EvaluationResponse;
+}
+
+export async function getCompanies(): Promise<CompanyResponse[]> {
+    const { data, error } = await client.GET("/company/");
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as CompanyResponse[];
+}
+
+export async function getCompany(id: string): Promise<CompanyResponse> {
+    const { data, error } = await client.GET("/company/{company_id}", {params: {path: {company_id: id}}});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as CompanyResponse;
+}
+
+export async function createCompany(company: CompanyCreate): Promise<CompanyResponse> {
+    const { data, error } = await client.POST("/company/", {body: company});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as CompanyResponse;
+}
+
+export async function updateCompany(id: string, company: CompanyUpdate): Promise<CompanyResponse> {
+    const { data, error } = await client.PUT("/company/{company_id}", {params: {path: {company_id: id}}, body: company});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as CompanyResponse;
 }

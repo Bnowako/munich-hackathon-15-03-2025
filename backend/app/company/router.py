@@ -1,0 +1,55 @@
+from typing import List
+from fastapi import APIRouter, HTTPException
+from .models import CompanyDocument
+from .schemas import CompanyResponse, CompanyCreate, CompanyUpdate
+
+router = APIRouter(prefix="/company", tags=["company"])
+
+@router.get("/")
+async def get_companies() -> List[CompanyResponse]:
+    companies = await CompanyDocument.find().to_list()
+    return [CompanyResponse(
+        id=str(company.id),
+        name=company.name,
+        facts=company.facts,
+    ) for company in companies]
+
+@router.get("/{company_id}")
+async def get_company(company_id: str) -> CompanyResponse:
+    company = await CompanyDocument.find_one(CompanyDocument.id == ObjectId(company_id))
+    if rfq is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return CompanyResponse(
+        id=str(company.id),
+        name=company.name,
+        facts=company.facts,
+    )
+
+@router.post("/")
+async def create_company(company: CompanyCreate) -> CompanyResponse:
+    company = CompanyDocument(
+        name=company.name,
+        facts=company.facts,
+    )
+    await company.save()
+    return CompanyResponse(
+        id=str(company.id),
+        name=company.name,
+        facts=company.facts,
+    )
+
+@router.put("/{company_id}")
+async def update_company(company_id: str, company: CompanyUpdate) -> CompanyResponse:
+    company = await CompanyDocument.find_one(CompanyDocument.id == ObjectId(company_id))
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    company.name = company.name
+    company.facts = company.facts
+    await company.save()
+    return CompanyResponse(
+        id=str(company.id),
+        name=company.name,
+        facts=company.facts,
+    )

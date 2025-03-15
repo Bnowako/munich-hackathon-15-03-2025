@@ -44,6 +44,10 @@ const data = {
           title: "RFQ Overview",
           url: "/rfq",
         },
+        {
+          title: "Company",
+          url: "/company",
+        },
       ],
     },
     {

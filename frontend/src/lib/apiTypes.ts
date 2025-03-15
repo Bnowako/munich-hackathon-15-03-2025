@@ -9,8 +9,10 @@ export type RFQResponse = components["schemas"]["RFQResponse"]
 export type EvaluationResponse = components["schemas"]["EvaluationResponse"]
 export type RequirementMetadataResponse = components["schemas"]["RequirementMetadataResponse"]
 export type RequirementEvaluationResponse = components["schemas"]["RequirementEvaluationResponse"]
-
-export type BaseMessage = {
+export type CompanyResponse = components["schemas"]["CompanyResponse"]
+export type CompanyCreate = components["schemas"]["CompanyCreate"]
+export type CompanyUpdate = components["schemas"]["CompanyUpdate"]
+    export type BaseMessage = {
     type: "human" | "ai" | "tool",
     content: string,
     conversation_id: string,
