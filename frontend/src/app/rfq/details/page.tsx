@@ -129,7 +129,7 @@ export default function RFQDetailsPage() {
         });
 
         const updatedEvaluation = await updateRequirementEvaluation(rfq.id, {
-            reason: updatedReason,
+            requirement: requirementMetadata.requirement,
             updated_reason: updatedReason
         });
 
@@ -139,6 +139,10 @@ export default function RFQDetailsPage() {
             newSet.delete(index);
             return newSet;
         });
+        
+        // Close all textareas and exit editing mode
+        setEditingReasons(new Set());
+        setIsEditing(false);
     };
 
     const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

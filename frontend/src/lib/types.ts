@@ -265,8 +265,8 @@ export interface components {
         };
         /** UpdateRequirementEvaluationRequest */
         UpdateRequirementEvaluationRequest: {
-            /** Reason */
-            reason: string;
+            /** Requirement */
+            requirement: string;
             /** Updated Reason */
             updated_reason: string;
         };
