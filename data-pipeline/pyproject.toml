@@ -1,0 +1,16 @@
+[project]
+name = "data-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv==1.0.1",
+    "pydantic==2.10.4",
+    "ruff==0.8.3",
+    "langchain==0.3.17",
+    "langchain-openai==0.3.3",
+    "beanie==1.29.0",
+    "langgraph==0.3.8",
+    "xmltodict>=0.14.2",
+]

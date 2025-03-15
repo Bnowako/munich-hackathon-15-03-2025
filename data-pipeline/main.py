@@ -1,0 +1,110 @@
+import asyncio
+from pathlib import Path
+from typing import Any, Dict
+import xmltodict
+import logging
+
+import motor.motor_asyncio
+from beanie import init_beanie # type: ignore
+
+from typing import Any, Dict, Literal
+from beanie import Document
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+class RFQDocument(Document):
+    type: Literal["ContractAwardNotice", "ContractNotice"]
+    title: str
+    description: str
+    procurement_project_lot: list[Dict[str, Any]]
+    cpv_codes: list[str]
+    requirements: list[str]
+    raw: str
+
+    
+
+
+async def init_db():
+    # Create Motor client
+    client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017") # type: ignore
+    
+    # Initialize beanie with the RFQ document model
+    await init_beanie(database=client.db, document_models=[RFQDocument]) # type: ignore
+
+
+def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDocument:
+    rfq_type = list(xml_dict.keys())[0]
+    
+    if rfq_type not in ["ContractAwardNotice", "ContractNotice"]:
+        raise ValueError(f"Invalid type: {rfq_type}")
+    
+    title = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Name')['#text']
+    if not title:
+        logger.error(f"Title not found for {rfq_type} in {xml_file}")
+        title = "unknown"
+    
+    description = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Description')["#text"]
+    if not description:
+        logger.error(f"Description not found for {rfq_type} in {xml_file}")
+        description = "unknown"
+
+    project_procurement_lot = xml_dict.get(rfq_type, {}).get('cac:ProcurementProjectLot', [])
+    if not isinstance(project_procurement_lot, list):
+        project_procurement_lot = [project_procurement_lot]
+    
+    if not project_procurement_lot:
+        raise ValueError(f"Project procurement lot not found for {rfq_type}, {xml_file}")
+    
+    lot_cpv_codes = []
+    for lot in project_procurement_lot: # type: ignore
+        lot_cpv = lot.get('cac:ProcurementProject', {}).get('cac:MainCommodityClassification', {}).get('cbc:ItemClassificationCode')["#text"] # type: ignore
+        lot_cpv_codes.append(lot_cpv) # type: ignore
+
+    return RFQDocument(
+        type=rfq_type, # type: ignore
+        title=title,
+        description=description,
+        
+        cpv_codes=lot_cpv_codes, # type: ignore
+        procurement_project_lot=project_procurement_lot, #type: ignore
+        
+        requirements=["todo"],
+        
+        raw=raw
+    )
+
+
+all_types: set[str] = set()
+
+async def parse_xml_files(folder: str, max_files: int = 10):
+    folder_path = Path(folder)
+    logger.info(f"absolute path: {folder_path.absolute()}")
+    
+    result: list[RFQDocument] = []
+    for i, xml_file in enumerate(folder_path.glob('*.xml')):
+        if i >= max_files:
+            break
+
+        with xml_file.open('r', encoding='utf-8') as f:
+            raw_xml = f.read()
+            xml_dict = xmltodict.parse(raw_xml)
+
+            rfq_document = map_to_document(xml_dict, xml_file, raw_xml)
+            result.append(rfq_document)
+            
+    return result
+
+
+async def main():
+    await init_db()
+    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/test-f', max_files=10000000)
+
+    for doc in docs:
+        logger.info(f"Inserting document: {doc.title}")
+        await doc.insert()
+
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
