@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 import xmltodict
 from config import init_db
-from models import EnhancedRFQ, ParsedXmlRfQ, RFQDocument, Requirement
+from models import EnhancedRFQ, Lot, ParsedXmlRfQ, RFQDocument, Requirement
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -23,32 +23,36 @@ class ExtractedRequirement(BaseModel):
 
 class Requirements(BaseModel):
     requirements: List[ExtractedRequirement]
-    
+
+class ExtractedLot(BaseModel):
+    title: str
+    description: str
+    requirements: List[ExtractedRequirement]
+
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
-translation_chat = llm.with_structured_output(TranslatedText) # type: ignore
-requirements_chat = llm.with_structured_output(Requirements) # type: ignore
+
+general_structured = llm.with_structured_output(EnhancedRFQ) # type: ignore
 
 async def main(save_to_db: bool = False):
     await init_db()
     logger.info("\n --- Starting main --- \n")
-
     
     docs = await RFQDocument.find_all().limit(5).to_list()
     for doc in docs:
-        translated_title: TranslatedText = await translation_chat.ainvoke(f"Translate this to english: {doc.parsed.title}") # type: ignore
-        translated_description: TranslatedText = await translation_chat.ainvoke(f"Translate this to english: {doc.parsed.description}") # type: ignore
-        requirements: Requirements = await requirements_chat.ainvoke(f"Extract requirements from this document add exact source of the requirement that is in the xml: {doc.parsed.raw_xml}") # type: ignore
-        doc.enhanced = EnhancedRFQ(
-            title=translated_title.text,
-            description=translated_description.text,
-            requirements=[
-                Requirement(
-                requirement=requirement.requirement, 
-                requirement_source=requirement.requirement_source
-                ) for requirement in requirements.requirements
-                ]
-        )
+       
+        logger.info(f"Extracting general information about the RFQ and the lots. Here is the XML: {doc.parsed.raw_xml}")
+        general_structured_output = await general_structured.ainvoke(f"""
+                                                                     You are RFQ EU Specialist. You are given a document with RFQ. You need to extract information about the RFQ and the lots. Here is the XML: {doc.parsed.raw_xml}
+                                                        Tips about the extraction:
+                                                        - Everything needs to be translated to ENGLISH
+                                                        - We are preparing human readable easy to understand RFQ for the customer.
+                                                        - First you need to extract general information about the RFQ and general requirements.
+                                                        - Then you need to extract information about lots and their requirements.
+                                                                     """) # type: ignore
+        
+        logger.info(f"General structured output: Done!")
+        doc.enhanced = general_structured_output # type: ignore
         await doc.save()
 
     # logger.info(f"Found {len(docs)} documents")

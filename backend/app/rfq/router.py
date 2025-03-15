@@ -2,7 +2,7 @@ from typing import List, Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import RFQDocument
-from .schemas import RFQResponse, RequirementResponse
+from .schemas import RFQResponse, RequirementResponse, LotResponse
 
 router = APIRouter(prefix="/rfq", tags=["rfq"])
 
@@ -18,7 +18,8 @@ async def get_rfqs() -> List[RFQResponse]:
                 title=rfq.enhanced.title,
                 description=rfq.enhanced.description,
                 requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in rfq.enhanced.requirements],
-                raw_xml=rfq.parsed.raw_xml
+                raw_xml=rfq.parsed.raw_xml,
+                lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots]
             ))
     return result
 
@@ -36,5 +37,6 @@ async def get_rfq(rfq_id: str) -> RFQResponse:
         title=rfq.enhanced.title,
         description=rfq.enhanced.description,
         requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in rfq.enhanced.requirements],
-        raw_xml=rfq.parsed.raw_xml
+        raw_xml=rfq.parsed.raw_xml,
+        lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots]
     )

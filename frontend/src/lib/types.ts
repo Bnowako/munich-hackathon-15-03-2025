@@ -219,6 +219,17 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** LotResponse */
+        LotResponse: {
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            /** Requirements */
+            requirements: components["schemas"]["RequirementResponse"][];
+            /** Lot Source */
+            lot_source: string;
+        };
         /** PostExampleRequest */
         PostExampleRequest: {
             /** Name */
@@ -241,6 +252,8 @@ export interface components {
             requirements: components["schemas"]["RequirementResponse"][];
             /** Raw Xml */
             raw_xml: string;
+            /** Lots */
+            lots: components["schemas"]["LotResponse"][];
         };
         /** RFQStatusResponse */
         RFQStatusResponse: {

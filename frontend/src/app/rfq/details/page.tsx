@@ -25,7 +25,14 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter,
 } from "@/components/ui/dialog";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
 
@@ -43,6 +50,8 @@ export default function RFQDetailsPage() {
     const id = searchParams.get("id");
     const [formattedContent, setFormattedContent] = useState<string>("");
     const [viewMode, setViewMode] = useState<'xml' | 'json'>('xml');
+    const [selectedLot, setSelectedLot] = useState<any | null>(null);
+    const [lotsDialogOpen, setLotsDialogOpen] = useState<boolean>(false);
 
     // Sync isEditing with ref
     useEffect(() => {
@@ -369,6 +378,76 @@ export default function RFQDetailsPage() {
                             </Table>
                         </div>
                     </div>
+                
+                    <div>
+                        <h2 className="text-xl font-semibold mb-2">Lots</h2>
+                        <div className="overflow-x-auto">
+                            <Accordion type="single" collapsible className="w-full">
+                                {rfq.lots.map((lot, index) => (
+                                    <AccordionItem key={index} value={`lot-${index}`}>
+                                        <AccordionTrigger className="hover:bg-gray-50 px-4">
+                                            <div className="flex justify-between w-full">
+                                                <span>{lot.title || `Lot ${index + 1}`}</span>
+                                                <span className="text-gray-500 text-sm">
+                                                    {lot.requirements?.length || 0} items
+                                                </span>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="p-4">
+                                                {lot.description && (
+                                                    <p className="text-gray-700 mb-4">{lot.description}</p>
+                                                )}
+                                                
+                                                {lot.requirements && lot.requirements.length > 0 ? (
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Item</TableHead>
+                                                                <TableHead>Description</TableHead>
+                                                                <TableHead>Quantity</TableHead>
+                                                                <TableHead>Actions</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {lot.requirements.map((requirement, requirementIndex) => (
+                                                                <TableRow key={requirementIndex}>
+                                                                    <TableCell>{requirement.requirement || `Requirement ${requirementIndex + 1}`}</TableCell>
+                                                                    <TableCell className="max-w-[300px]">
+                                                                        {requirement.requirement_source || "No description"}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => {
+                                                                                setSelectedLot({
+                                                                                    lot: lot,
+                                                                                    requirement: requirement,
+                                                                                    lotIndex: index,
+                                                                                    requirementIndex: requirementIndex
+                                                                                });
+                                                                                setLotsDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            View Details
+                                                                        </Button>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                ) : (
+                                                    <div className="text-gray-500 italic">No items in this lot</div>
+                                                )}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </div>
+                    </div>
+                
                 </div>
             </div>
 
@@ -435,6 +514,68 @@ export default function RFQDetailsPage() {
                             </div>
                         )}
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={lotsDialogOpen} onOpenChange={setLotsDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Lot Item Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        {selectedLot && (
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">
+                                    {selectedLot.item.name || `Item ${selectedLot.itemIndex + 1}`}
+                                </h3>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">Lot Information</h4>
+                                        <p><span className="font-medium">Title:</span> {selectedLot.lot.title || `Lot ${selectedLot.lotIndex + 1}`}</p>
+                                        {selectedLot.lot.description && (
+                                            <p><span className="font-medium">Description:</span> {selectedLot.lot.description}</p>
+                                        )}
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 className="font-medium text-gray-700">Item Details</h4>
+                                        <p><span className="font-medium">Description:</span> {selectedLot.item.description || "No description"}</p>
+                                        <p><span className="font-medium">Quantity:</span> {selectedLot.item.quantity || "N/A"}</p>
+                                        {selectedLot.item.unit_price && (
+                                            <p><span className="font-medium">Unit Price:</span> {selectedLot.item.unit_price}</p>
+                                        )}
+                                        {selectedLot.item.specifications && (
+                                            <div>
+                                                <h4 className="font-medium text-gray-700 mt-2">Specifications</h4>
+                                                <ul className="list-disc pl-5">
+                                                    {Object.entries(selectedLot.item.specifications).map(([key, value], i) => (
+                                                        <li key={i}><span className="font-medium">{key}:</span> {String(value)}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* Additional metadata or actions could go here */}
+                                <div className="bg-gray-100 p-4 rounded-md mt-4">
+                                    <h4 className="font-medium text-gray-700 mb-2">Raw Data</h4>
+                                    <pre className="text-sm whitespace-pre-wrap">
+                                        {JSON.stringify(selectedLot.item, null, 2)}
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setLotsDialogOpen(false)}
+                        >
+                            Close
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
