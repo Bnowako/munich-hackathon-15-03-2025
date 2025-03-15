@@ -12,26 +12,24 @@ import {
   useSidebar
 } from "@/components/ui/sidebar"
 
-// This is sample data.
-const data = {
-  navItems: [
-    {
-      title: "Dashboard",
-      url: "/",
-      icon: LayoutDashboard,
-    },
-    {
-      title: "RFQs",
-      url: "/rfq",
-      icon: FileSpreadsheet,
-    },
-    {
-      title: "Company Profile",
-      url: "/company",
-      icon: Building2,
-    },
-  ]
-}
+// Export the navItems so we can use them in the layout
+export const navItems = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "RFQs",
+    url: "/rfq",
+    icon: FileSpreadsheet,
+  },
+  {
+    title: "Company Profile",
+    url: "/company",
+    icon: Building2,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar()
@@ -49,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navItems} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

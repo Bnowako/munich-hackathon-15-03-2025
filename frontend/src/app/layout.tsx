@@ -17,7 +17,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-
+import { BreadcrumbNav } from "@/components/breadcrumb-nav"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,19 +51,7 @@ export default function RootLayout({
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <BreadcrumbNav />
           </div>
         </header>
         <div className="m-4">
