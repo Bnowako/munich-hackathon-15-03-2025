@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 class RFQDocument(Document):
-    type: Literal["ContractAwardNotice", "ContractNotice"]
+    type: Literal["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice"]
     title: str
     description: str
     procurement_project_lot: list[Dict[str, Any]]
@@ -22,7 +22,7 @@ class RFQDocument(Document):
     requirements: list[str]
     raw: str
 
-    
+
 
 
 async def init_db():
@@ -36,7 +36,7 @@ async def init_db():
 def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDocument:
     rfq_type = list(xml_dict.keys())[0]
     
-    if rfq_type not in ["ContractAwardNotice", "ContractNotice"]:
+    if rfq_type not in ["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice"]:
         raise ValueError(f"Invalid type: {rfq_type}")
     
     title = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Name')['#text']
@@ -54,7 +54,8 @@ def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDo
         project_procurement_lot = [project_procurement_lot]
     
     if not project_procurement_lot:
-        raise ValueError(f"Project procurement lot not found for {rfq_type}, {xml_file}")
+        logger.warn(f"Project procurement lot not found for {rfq_type}, {xml_file}")
+        project_procurement_lot = []
     
     lot_cpv_codes = []
     for lot in project_procurement_lot: # type: ignore
@@ -91,6 +92,9 @@ async def parse_xml_files(folder: str, max_files: int = 10):
             xml_dict = xmltodict.parse(raw_xml)
 
             rfq_document = map_to_document(xml_dict, xml_file, raw_xml)
+
+
+            
             result.append(rfq_document)
             
     return result
@@ -98,11 +102,11 @@ async def parse_xml_files(folder: str, max_files: int = 10):
 
 async def main():
     await init_db()
-    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/test-f', max_files=10000000)
+    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=100)
 
-    for doc in docs:
-        logger.info(f"Inserting document: {doc.title}")
-        await doc.insert()
+    # for doc in docs:
+        # logger.info(f"Inserting document: {doc.title}")
+        # await doc.insert()
 
 
 
