@@ -12,10 +12,14 @@ class ParsedXmlRfQ(BaseModel):
     cpv_codes: list[str]
     raw_xml: str
 
+class Requirement(BaseModel):
+    requirement: str
+    requirement_source: str
+
 class EnhancedRFQ(BaseModel):
     title: str
     description: str
-    requirements: list[str]
+    requirements: list[Requirement]
 
 
 class RFQDocument(Document):

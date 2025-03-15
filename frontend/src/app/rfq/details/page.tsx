@@ -19,6 +19,15 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github.css';
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -27,9 +36,13 @@ export default function RFQDetailsPage() {
     const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
     const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
     const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [selectedRequirement, setSelectedRequirement] = useState<number | null>(null);
     const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
+    const [formattedContent, setFormattedContent] = useState<string>("");
+    const [viewMode, setViewMode] = useState<'xml' | 'json'>('xml');
 
     // Sync isEditing with ref
     useEffect(() => {
@@ -44,18 +57,18 @@ export default function RFQDetailsPage() {
 
         async function fetchData() {
             try {
-                const rfqData = await getRFQ(id);
+                const rfqData = await getRFQ(id!);
                 if (!isMounted) return;
                 setRFQ(rfqData);
 
-                const ev = await getEvaluation(id);
+                const ev = await getEvaluation(id!);
                 if (!isMounted) return;
                 setEvaluation(ev);
 
                 // Set up interval to update evaluation every second
                 intervalId = setInterval(async () => {
                     if (!isEditingRef.current) {
-                        const updatedEv = await getEvaluation(id);
+                        const updatedEv = await getEvaluation(id!);
                         if (!isMounted) return;
                         setEvaluation(updatedEv);
                     }
@@ -178,6 +191,55 @@ export default function RFQDetailsPage() {
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
+    const handleRequirementClick = (index: number) => {
+        setSelectedRequirement(index);
+        setDialogOpen(true);
+    };
+
+    // Add this function to format XML
+    const formatXML = (xml: string): string => {
+        let formatted = '';
+        let indent = '';
+        
+        xml.split(/>\s*</).forEach(function(node) {
+            if (node.match(/^\/\w/)) {
+                // Decrease indent for closing tag
+                indent = indent.substring(2);
+            }
+            
+            formatted += indent + '<' + node + '>\n';
+            
+            if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith("?")) {
+                // Increase indent for opening tag (not self-closing)
+                indent += '  ';
+            }
+        });
+        
+        return formatted.substring(1, formatted.length - 2);
+    };
+    
+    // Update the dialog content when a requirement is selected
+    useEffect(() => {
+        if (selectedRequirement !== null && rfq && evaluation) {
+            // Check if raw_xml exists
+            if (rfq.raw_xml) {
+                // Use the raw XML directly
+                const formatted = formatXML(rfq.raw_xml);
+                setFormattedContent(formatted);
+                
+                // Apply syntax highlighting after the component renders
+                setTimeout(() => {
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block as HTMLElement);
+                    });
+                }, 0);
+            } else {
+                // Fallback if raw_xml doesn't exist
+                setFormattedContent("No raw XML data available");
+            }
+        }
+    }, [selectedRequirement, rfq, evaluation]);
+
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -232,8 +294,12 @@ export default function RFQDetailsPage() {
                                 <TableBody>
                                     {rfq.requirements.map((req, index) => (
                                         <TableRow key={index}>
-                                            <TableCell className="max-w-[150px]">{req}</TableCell>
-
+                                            <TableCell 
+                                                className="max-w-[150px] cursor-pointer hover:bg-gray-50"
+                                                onClick={() => handleRequirementClick(index)}
+                                            >
+                                                {req.requirement}
+                                            </TableCell>
                                             <TableCell>
                                                 {(() => {
                                                     const status = evaluation?.requirements_metadata[index]?.evaluation?.evaluation;
@@ -305,6 +371,72 @@ export default function RFQDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Requirement Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        {selectedRequirement !== null && rfq && evaluation && (
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">
+                                    Requirement: {rfq.requirements[selectedRequirement].requirement}
+                                </h3>
+                                
+                                <div className="flex space-x-2 mb-4">
+                                    <Button 
+                                        variant={viewMode === 'xml' ? 'default' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => setViewMode('xml')}
+                                    >
+                                        XML View
+                                    </Button>
+                                    <Button 
+                                        variant={viewMode === 'json' ? 'default' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => setViewMode('json')}
+                                    >
+                                        JSON View
+                                    </Button>
+                                </div>
+                                
+                                {/* XML View */}
+                                {viewMode === 'xml' && (
+                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+                                        {rfq.raw_xml ? (
+                                            <pre className="text-sm">
+                                                <code className="language-xml">{formattedContent}</code>
+                                            </pre>
+                                        ) : (
+                                            <div className="text-amber-600 p-2 bg-amber-50 rounded">
+                                                No raw XML data available for this RFQ
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* JSON View */}
+                                {viewMode === 'json' && (
+                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+                                        <pre className="text-sm whitespace-pre-wrap">
+                                            {JSON.stringify(
+                                                {
+                                                    requirement: rfq.requirements[selectedRequirement],
+                                                    evaluation: evaluation.requirements_metadata[selectedRequirement],
+                                                    rfq: rfq,
+                                                },
+                                                null,
+                                                2
+                                            )}
+                                        </pre>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
