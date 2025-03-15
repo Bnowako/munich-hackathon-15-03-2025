@@ -1,4 +1,5 @@
 import asyncio
+from app.company.facade import get_company_context
 from fastapi import HTTPException
 from app.rfq.models import RFQDocument
 from bson import ObjectId
@@ -43,7 +44,7 @@ async def create_blank_evaluation(rfq_id: str):
     
     
 
-async def invoke_llm_evaluation(evaluation: EvaluationDocument):
+async def invoke_llm_evaluation(evaluation: EvaluationDocument, company_id: str):
     logger.info(f"Invoking LLM evaluation for {evaluation.rfq_id}")
     
     for index, metadata in enumerate(evaluation.requirements_metadata):
@@ -59,7 +60,7 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument):
         
         await evaluation.save()
 
-        llm_evaluation = await evaluate_requirement(metadata.requirement, "Company: Railway Co. Facts: Railway Co. is a railway company that builds railways and sells railway tickets")
+        llm_evaluation = await evaluate_requirement(metadata.requirement, await get_company_context(company_id))
 
         updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
             "evaluation": llm_evaluation.evaluation,

@@ -1,5 +1,6 @@
 import asyncio
 from typing import List
+from app.company.models import CompanyDocument
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument, RequirementEvaluation
@@ -24,12 +25,13 @@ async def get_evaluation(rfq_id: str) -> EvaluationResponse:
 
 @router.put("/{rfq_id}")
 async def request_evaluation(rfq_id: str):
+    company = (await CompanyDocument.find_all().to_list())[0]
     evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
     logger.info(f"Requesting evaluation for {rfq_id}")
-    asyncio.create_task(invoke_llm_evaluation(evaluation))
+    asyncio.create_task(invoke_llm_evaluation(evaluation, company.id))
 
 
 

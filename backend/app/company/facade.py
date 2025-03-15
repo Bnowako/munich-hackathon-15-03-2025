@@ -1,5 +1,6 @@
-from app.company.models import Company
+from app.company.models import CompanyDocument
+from bson import ObjectId
 
-def get_company_context(id: str) -> str:
-    company = get_company_by_id(id)
-    return "Company: Railway Co. Facts: Railway Co. is a railway company that builds railways and sells railway tickets."
+async def get_company_context(id: str) -> str:
+    company = await CompanyDocument.find_one(CompanyDocument.id == ObjectId(id))
+    return f"Company: {company.name} Facts: {company.facts}"
