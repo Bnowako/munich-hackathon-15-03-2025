@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CompanyResponse } from "@/lib/apiTypes";
-import { getCompanies, createCompany, updateCompany, getCurrentCompany } from "@/lib/api";
+import { updateCompany, getCurrentCompany } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Table,

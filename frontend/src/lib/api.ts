@@ -73,22 +73,10 @@ export async function requestEvaluation(id: string): Promise<EvaluationResponse>
     return data as EvaluationResponse;
 }
 
-export async function getCompanies(): Promise<CompanyResponse[]> {
-    const { data, error } = await client.GET("/company/");
-    if (error) handleApiError(error);
-    if (!data) throw new Error("No data returned");
-    return data as CompanyResponse[];
-}
+
 
 export async function getCompany(id: string): Promise<CompanyResponse> {
     const { data, error } = await client.GET("/company/{company_id}", {params: {path: {company_id: id}}});
-    if (error) handleApiError(error);
-    if (!data) throw new Error("No data returned");
-    return data as CompanyResponse;
-}
-
-export async function createCompany(company: CompanyCreate): Promise<CompanyResponse> {
-    const { data, error } = await client.POST("/company/", {body: company});
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as CompanyResponse;
