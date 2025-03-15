@@ -94,7 +94,7 @@ export default function RFQDetailsPage() {
                                             Evaluation
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Notes
+                                            Reason
                                         </th>
                                     </tr>
                                 </thead>
@@ -108,20 +108,26 @@ export default function RFQDetailsPage() {
                                                 {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === "IN_PROGRESS" ? (
                                                     <div className="flex items-center">
                                                         <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                                                        <span className="ml-2">Evaluating...</span>
+                                                        <span className="ml-2">🤖 In progress</span>
                                                     </div>
                                                 ) : (
-                                                    evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation || 'No evaluation yet'
+                                                    (() => {
+                                                        const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
+                                                        switch(status) {
+                                                            case 'ELIGIBLE':
+                                                                return '✅';
+                                                            case 'NOT_ELIGIBLE':
+                                                                return '🛑';
+                                                            case 'IN_PROGRESS':
+                                                                return '🤖';
+                                                            default:
+                                                                return '🫥';
+                                                        }
+                                                    })()
                                                 )}
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <textarea
-                                                    className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-                                                    rows={3}
-                                                    placeholder="Add your notes here..."
-                                                    value={requirementNotes[index] || ''}
-                                                    onChange={(e) => handleNoteChange(index, e.target.value)}
-                                                />
+                                            <td className="px-6 py-4 text-sm text-gray-900">
+                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.reason || 'No reason provided'}
                                             </td>
                                         </tr>
                                     ))}
