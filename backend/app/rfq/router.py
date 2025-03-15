@@ -8,7 +8,7 @@ router = APIRouter(prefix="/rfq", tags=["rfq"])
 
 @router.get("/")
 async def get_rfqs() -> List[RFQResponse]:
-    rfqs = await RFQDocument.find_all().to_list()
+    rfqs = await RFQDocument.find(RFQDocument.enhanced != None).to_list()
     return [RFQResponse(
         id=str(rfq.id),
         title=rfq.enhanced.title,

@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 from .example.router import router as example_router
 from .example.models import ExampleDocument
 from .chat.router import router as chat_router
-from .rfq.models import EnhancedRFQ, ParsedXmlRfQ, RFQDocument
-from .rfq.rfq_mock import rfq_mock
+from .rfq.models import RFQDocument
 from .rfq.router import router as rfq_router
 from .evaluation.models import EvaluationDocument
 from .evaluation.router import router as evaluation_router
