@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import createClient from "openapi-fetch";
 import { paths } from "./types";
-import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse, EvaluationResponse, CompanyResponse, CompanyCreate, CompanyUpdate } from "./apiTypes";
+import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse, EvaluationResponse, CompanyResponse, CompanyCreate, CompanyUpdate, UpdateRequirementEvaluationRequest } from "./apiTypes";
 
 const client = createClient<paths>({baseUrl: '/api'});
 
@@ -106,4 +106,10 @@ export async function getCurrentCompany(): Promise<CompanyResponse> {
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as CompanyResponse;
+}
+
+export async function updateRequirementEvaluation(id: string, evaluation: UpdateRequirementEvaluationRequest): Promise<EvaluationResponse> {
+    const { data, error } = await client.PUT("/evaluation/{rfq_id}/requirements", {params: {path: {rfq_id: id}}, body: evaluation});
+    if (error) handleApiError(error);
+    return data as EvaluationResponse;
 }

@@ -93,6 +93,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/evaluation/{rfq_id}/requirements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Requirement Evaluation */
+        put: operations["update_requirement_evaluation_evaluation__rfq_id__requirements_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/company/current": {
         parameters: {
             query?: never;
@@ -245,6 +262,13 @@ export interface components {
             requirement: string;
             llm_evaluation: components["schemas"]["RequirementEvaluationResponse"];
             human_evaluation: components["schemas"]["RequirementEvaluationResponse"];
+        };
+        /** UpdateRequirementEvaluationRequest */
+        UpdateRequirementEvaluationRequest: {
+            /** Reason */
+            reason: string;
+            /** Updated Reason */
+            updated_reason: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -506,6 +530,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_requirement_evaluation_evaluation__rfq_id__requirements_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rfq_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRequirementEvaluationRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

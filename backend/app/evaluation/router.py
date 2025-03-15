@@ -35,7 +35,7 @@ async def request_evaluation(rfq_id: str):
     asyncio.create_task(invoke_llm_evaluation(evaluation, company.id))
 
 
-@router.put("/{rfq_id}/requirements/{requirement_id}")
+@router.put("/{rfq_id}/requirements")
 async def update_requirement_evaluation(rfq_id: str, request: UpdateRequirementEvaluationRequest):
     company = (await CompanyDocument.find_all().to_list())[0]
     evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)

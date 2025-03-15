@@ -7,6 +7,7 @@ export type PutExampleRequest = components["schemas"]["PutExampleRequest"]
 export type RFQResponse = components["schemas"]["RFQResponse"]
 
 export type EvaluationResponse = components["schemas"]["EvaluationResponse"]
+export type UpdateRequirementEvaluationRequest = components["schemas"]["UpdateRequirementEvaluationRequest"]
 export type RequirementMetadataResponse = components["schemas"]["RequirementMetadataResponse"]
 export type RequirementEvaluationResponse = components["schemas"]["RequirementEvaluationResponse"]
 export type CompanyResponse = components["schemas"]["CompanyResponse"]
