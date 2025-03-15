@@ -75,24 +75,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/evaluation/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Evaluations */
-        get: operations["get_evaluations_evaluation__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/evaluation/{evaluation_id}": {
+    "/evaluation/{rfq_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -100,9 +83,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get Evaluation */
-        get: operations["get_evaluation_evaluation__evaluation_id__get"];
-        /** Update Evaluation */
-        put: operations["update_evaluation_evaluation__evaluation_id__put"];
+        get: operations["get_evaluation_evaluation__rfq_id__get"];
+        /** Request Evaluation */
+        put: operations["request_evaluation_evaluation__rfq_id__put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -133,10 +116,12 @@ export interface components {
     schemas: {
         /** EvaluationResponse */
         EvaluationResponse: {
-            /** Requirements To Notes */
-            requirements_to_notes: {
-                [key: string]: string;
-            }[];
+            /** Id */
+            id: string;
+            /** Rfq Id */
+            rfq_id: string;
+            /** Requirements Metadata */
+            requirements_metadata: components["schemas"]["RequirementMetadataResponse"][];
         };
         /** ExampleResponse */
         ExampleResponse: {
@@ -170,6 +155,23 @@ export interface components {
             description: string;
             /** Requirements */
             requirements: string[];
+        };
+        /** RequirementEvaluationResponse */
+        RequirementEvaluationResponse: {
+            /**
+             * Evaluation
+             * @enum {string}
+             */
+            evaluation: "ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN";
+            /** Reason */
+            reason?: string | null;
+        };
+        /** RequirementMetadataResponse */
+        RequirementMetadataResponse: {
+            /** Requirement */
+            requirement: string;
+            llm_evaluation: components["schemas"]["RequirementEvaluationResponse"];
+            human_evaluation: components["schemas"]["RequirementEvaluationResponse"];
         };
         /** ValidationError */
         ValidationError: {
@@ -390,32 +392,12 @@ export interface operations {
             };
         };
     };
-    get_evaluations_evaluation__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EvaluationResponse"][];
-                };
-            };
-        };
-    };
-    get_evaluation_evaluation__evaluation_id__get: {
+    get_evaluation_evaluation__rfq_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                evaluation_id: string;
+                rfq_id: string;
             };
             cookie?: never;
         };
@@ -441,20 +423,16 @@ export interface operations {
             };
         };
     };
-    update_evaluation_evaluation__evaluation_id__put: {
+    request_evaluation_evaluation__rfq_id__put: {
         parameters: {
-            query: {
+            query?: never;
+            header?: never;
+            path: {
                 rfq_id: string;
             };
-            header?: never;
-            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EvaluationResponse"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

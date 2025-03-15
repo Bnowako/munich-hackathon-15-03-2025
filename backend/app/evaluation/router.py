@@ -2,24 +2,42 @@ from typing import List
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument
-from .schemas import EvaluationResponse
+from .schemas import EvaluationResponse, RequirementMetadataResponse, RequirementEvaluationResponse
 
 router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
-@router.get("/")
-async def get_evaluations() -> List[EvaluationResponse]:
-    evaluations = await EvaluationDocument.find_all().to_list()
-    return evaluations
-
-@router.get("/{evaluation_id}")
-async def get_evaluation(evaluation_id: str) -> EvaluationResponse:
-    evaluation = await EvaluationDocument.find_one(EvaluationDocument.id == evaluation_id)
+@router.get("/{rfq_id}")
+async def get_evaluation(rfq_id: str) -> EvaluationResponse:
+    evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
-    return evaluation
+    
+    return _map_evaluation_to_response(evaluation)
 
-@router.put("/{evaluation_id}")
-async def update_evaluation(rfq_id: str, evaluation: EvaluationResponse) -> EvaluationResponse:
-    evaluation = EvaluationDocument(rfq_id=rfq_id, requirements_to_notes=evaluation.requirements_to_notes)
-    await evaluation.save()
-    return evaluation
+@router.put("/{rfq_id}")
+async def request_evaluation(rfq_id: str) -> EvaluationResponse:
+    evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
+    if evaluation is None:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+    
+    # todo request evaluation from llm
+
+    return _map_evaluation_to_response(evaluation)
+
+
+def _map_evaluation_to_response(evaluation: EvaluationDocument) -> EvaluationResponse:
+    return EvaluationResponse(
+        id=str(evaluation.id),
+        rfq_id=str(evaluation.rfq_id),
+        requirements_metadata=[RequirementMetadataResponse(
+            requirement=metadata.requirement,
+            llm_evaluation=RequirementEvaluationResponse(
+                evaluation=metadata.llm_evaluation.evaluation,
+                reason=metadata.llm_evaluation.reason
+            ),
+            human_evaluation=RequirementEvaluationResponse(
+                evaluation=metadata.human_evaluation.evaluation,
+                reason=metadata.human_evaluation.reason
+            )
+        ) for metadata in evaluation.requirements_metadata]
+    )
