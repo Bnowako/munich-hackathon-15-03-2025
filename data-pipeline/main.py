@@ -11,19 +11,17 @@ from typing import Any, Dict, Literal
 from beanie import Document
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
+
 
 class RFQDocument(Document):
-    type: Literal["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice"]
+    type: Literal["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice", "urn:ContractAwardNotice", "pin:PriorInformationNotice", "cn:ContractNotice", "can:ContractAwardNotice", "urn:PriorInformationNotice"]
     title: str
     description: str
     procurement_project_lot: list[Dict[str, Any]]
     cpv_codes: list[str]
     requirements: list[str]
     raw: str
-
-
-
 
 async def init_db():
     # Create Motor client
@@ -36,15 +34,24 @@ async def init_db():
 def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDocument:
     rfq_type = list(xml_dict.keys())[0]
     
-    if rfq_type not in ["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice"]:
+    if rfq_type not in ["ContractAwardNotice", "ContractNotice", "urn:ContractNotice", "PriorInformationNotice", "urn:ContractAwardNotice", "pin:PriorInformationNotice", "cn:ContractNotice", "can:ContractAwardNotice", "urn:PriorInformationNotice"]:
         raise ValueError(f"Invalid type: {rfq_type}")
     
-    title = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Name')['#text']
+    name_tag = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Name')
+    if isinstance(name_tag, list):
+        name_tag = name_tag[0] # type: ignore
+    
+    logger.info(f"name_tag: {name_tag}")
+    title = name_tag['#text'] # type: ignore
     if not title:
         logger.error(f"Title not found for {rfq_type} in {xml_file}")
         title = "unknown"
     
-    description = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Description')["#text"]
+    description_tag = xml_dict.get(rfq_type, {}).get('cac:ProcurementProject').get('cbc:Description')
+    if isinstance(description_tag, list):
+        description_tag = description_tag[0] # type: ignore
+    
+    description = description_tag['#text'] # type: ignore
     if not description:
         logger.error(f"Description not found for {rfq_type} in {xml_file}")
         description = "unknown"
@@ -59,13 +66,15 @@ def map_to_document(xml_dict: Dict[str, Any], xml_file: Path, raw: str) -> RFQDo
     
     lot_cpv_codes = []
     for lot in project_procurement_lot: # type: ignore
-        lot_cpv = lot.get('cac:ProcurementProject', {}).get('cac:MainCommodityClassification', {}).get('cbc:ItemClassificationCode')["#text"] # type: ignore
-        lot_cpv_codes.append(lot_cpv) # type: ignore
+        lot_tag = lot.get('cac:ProcurementProject', {}).get('cac:MainCommodityClassification', {}).get('cbc:ItemClassificationCode') # type: ignore
+        if lot_tag is not None:
+            lot_cpv = lot_tag["#text"] # type: ignore
+            lot_cpv_codes.append(lot_cpv) # type: ignore
 
     return RFQDocument(
         type=rfq_type, # type: ignore
-        title=title,
-        description=description,
+        title=title, # type: ignore
+        description=description, # type: ignore
         
         cpv_codes=lot_cpv_codes, # type: ignore
         procurement_project_lot=project_procurement_lot, #type: ignore
@@ -102,7 +111,7 @@ async def parse_xml_files(folder: str, max_files: int = 10):
 
 async def main():
     await init_db()
-    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=100)
+    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=100000)
 
     # for doc in docs:
         # logger.info(f"Inserting document: {doc.title}")
