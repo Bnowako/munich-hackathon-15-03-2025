@@ -9,6 +9,10 @@ router = APIRouter(prefix="/company", tags=["company"])
 @router.get("/current")
 async def get_current_company() -> CompanyResponse:
     company = await CompanyDocument.find_one(CompanyDocument.name == "Railway Co")
+    
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
     return CompanyResponse(
         id=str(company.id),
         name=company.name,
