@@ -51,6 +51,7 @@ async def db_lifespan(app: MongoFastAPI):
     if not await RFQDocument.find_one(RFQDocument.title == "Mock RFQ"):
         logger.info("Inserting mock RFQ")
         mock_doc = RFQDocument(
+            id="mock_rfq",
             title="Mock RFQ",
             description="Mock description",
             requirements=["Requirement 1", "Requirement 2", "Requirement 3"],
