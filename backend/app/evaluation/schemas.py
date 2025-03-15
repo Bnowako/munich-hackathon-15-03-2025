@@ -7,8 +7,7 @@ class RequirementEvaluationResponse(BaseModel):
 
 class RequirementMetadataResponse(BaseModel):
     requirement: str
-    llm_evaluation: RequirementEvaluationResponse
-    human_evaluation: RequirementEvaluationResponse
+    evaluation: RequirementEvaluationResponse
 
 class EvaluationResponse(BaseModel):
     id: str
