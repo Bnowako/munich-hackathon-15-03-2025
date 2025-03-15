@@ -42,7 +42,7 @@ const data = {
         },
         {
           title: "RFQ Overview",
-          url: "/overview",
+          url: "/rfq",
         },
       ],
     },

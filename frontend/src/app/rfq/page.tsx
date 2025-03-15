@@ -4,8 +4,10 @@ import { DataTable } from "@/components/datatable";
 import { getRFQs } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { RFQResponse } from "@/lib/apiTypes";
+import { useRouter } from "next/navigation";
 
 export default function OverviewPage() {
+    const router = useRouter();
     const [data, setData] = useState<RFQResponse[]>([]);
     const [columns, setColumns] = useState<{ header: string, accessorKey: string }[]>([]);
 
@@ -27,9 +29,13 @@ export default function OverviewPage() {
         })();
     }, []);
 
-    const onRowClicked = (data: object) => {
-        console.log(data);
-        // TODO: Navigate to detail view when implemented
+    const onRowClicked = (data: RFQResponse) => {
+        router.push(`/rfq/details?id=${data.id}`);
+    }
+
+    const onDeleteClicked = (data: RFQResponse) => {
+        // TODO: Implement delete functionality
+        console.log("Delete clicked for:", data.id);
     }
 
     return (
@@ -38,7 +44,8 @@ export default function OverviewPage() {
             <div>
                 {data && columns &&
                     <DataTable
-                        onRowClicked={(data) => onRowClicked(data)}
+                        onRowClicked={(data) => onRowClicked(data as RFQResponse)}
+                        onDeleteClicked={(data) => onDeleteClicked(data as RFQResponse)}
                         columns={columns}
                         data={data}
                     />
