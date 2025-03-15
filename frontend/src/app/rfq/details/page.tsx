@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
+    const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
 
@@ -16,8 +17,21 @@ export default function RFQDetailsPage() {
         (async () => {
             const rfqData = await getRFQ(id);
             setRFQ(rfqData);
+            // Initialize empty notes for each requirement
+            const initialNotes = rfqData.requirements.reduce((acc, _, index) => {
+                acc[index] = '';
+                return acc;
+            }, {} as { [key: number]: string });
+            setRequirementNotes(initialNotes);
         })();
     }, [id]);
+
+    const handleNoteChange = (index: number, note: string) => {
+        setRequirementNotes(prev => ({
+            ...prev,
+            [index]: note
+        }));
+    };
 
     if (!id) {
         return <div className="container mx-auto p-5">
@@ -55,11 +69,38 @@ export default function RFQDetailsPage() {
 
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Requirements</h2>
-                        <ul className="list-disc list-inside space-y-2">
-                            {rfq.requirements.map((req, index) => (
-                                <li key={index} className="text-gray-700">{req}</li>
-                            ))}
-                        </ul>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Requirement
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Notes
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {rfq.requirements.map((req, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4 text-sm text-gray-900">
+                                                {req}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <textarea
+                                                    className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
+                                                    rows={3}
+                                                    placeholder="Add your notes here..."
+                                                    value={requirementNotes[index] || ''}
+                                                    onChange={(e) => handleNoteChange(index, e.target.value)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

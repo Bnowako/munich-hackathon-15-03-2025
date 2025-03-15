@@ -5,6 +5,7 @@ export type ExampleResponse = components["schemas"]["ExampleResponse"]
 export type PostExampleRequest = components["schemas"]["PostExampleRequest"]
 export type PutExampleRequest = components["schemas"]["PutExampleRequest"]
 export type RFQResponse = components["schemas"]["RFQResponse"]
+export type EvaluationResponse = components["schemas"]["EvaluationResponse"]
 export type BaseMessage = {
     type: "human" | "ai" | "tool",
     content: string,

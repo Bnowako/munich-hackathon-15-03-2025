@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import createClient from "openapi-fetch";
 import { paths } from "./types";
-import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse } from "./apiTypes";
+import { ExampleResponse, PostExampleRequest, PutExampleRequest, RFQResponse, EvaluationResponse } from "./apiTypes";
 
 const client = createClient<paths>({baseUrl: '/api'});
 
@@ -57,4 +57,25 @@ export async function getRFQ(id: string): Promise<RFQResponse> {
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as RFQResponse;
+}
+
+export async function getEvaluations(): Promise<EvaluationResponse[]> {
+    const { data, error } = await client.GET("/evaluation/");
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as EvaluationResponse[];
+}
+
+export async function getEvaluation(id: string): Promise<EvaluationResponse> {
+    const { data, error } = await client.GET("/evaluation/{evaluation_id}", {params: {path: {evaluation_id: id}}});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as EvaluationResponse;
+}
+
+export async function updateEvaluation(id: string, evaluation: EvaluationResponse): Promise<EvaluationResponse> {
+    const { data, error } = await client.PUT("/evaluation/{evaluation_id}", {params: {path: {evaluation_id: id}}, body: evaluation});
+    if (error) handleApiError(error);
+    if (!data) throw new Error("No data returned");
+    return data as EvaluationResponse;
 }

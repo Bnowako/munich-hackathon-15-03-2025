@@ -12,6 +12,8 @@ from .chat.router import router as chat_router
 from .rfq.models import RFQDocument
 from .rfq.rfq_mock import rfq_mock
 from .rfq.router import router as rfq_router
+from .evaluation.models import EvaluationDocument
+from .evaluation.router import router as evaluation_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -45,13 +47,14 @@ async def db_lifespan(app: MongoFastAPI):
     
     await init_beanie(database=app.database, document_models=[
         ExampleDocument,
-        RFQDocument
-        ])
+        RFQDocument,
+        EvaluationDocument
+    ])
     
-    if not await RFQDocument.find_one(RFQDocument.title == "Mock RFQ"):
+    existing_rfq = await RFQDocument.find_one(RFQDocument.title == "Mock RFQ")
+    if not existing_rfq:
         logger.info("Inserting mock RFQ")
         mock_doc = RFQDocument(
-            id="mock_rfq",
             title="Mock RFQ",
             description="Mock description",
             requirements=["Requirement 1", "Requirement 2", "Requirement 3"],
@@ -59,22 +62,22 @@ async def db_lifespan(app: MongoFastAPI):
         )
         await mock_doc.insert()
         logger.info("Mock RFQ inserted")
+        mock_rfq_id = mock_doc.id
     else:
-        logger.info("Mock RFQ already exists")
+        mock_rfq_id = existing_rfq.id
 
+    existing_evaluation = await EvaluationDocument.find_one({"rfq_id": mock_rfq_id})
+    if not existing_evaluation:
+        logger.info("Inserting mock evaluation")
+        mock_doc = EvaluationDocument(
+            rfq_id=str(mock_rfq_id),
+            requirements_to_notes=[{"Requirement 1": "Note 1"}, {"Requirement 2": "Note 2"}, {"Requirement 3": "Note 3"}]
+        )
+        await mock_doc.insert()
+        logger.info("Mock evaluation inserted")
+    else:
+        logger.info("Mock evaluation already exists")
 
-    await init_beanie(
-        database=app.database,
-        document_models=[
-            ExampleDocument,
-        ],
-    )
-
-    
-    await init_beanie(database=app.database, document_models=[
-        ExampleDocument,
-        ])
-    
     yield
     app.mongodb_client.close()
 
@@ -83,7 +86,7 @@ def create_app() -> FastAPI:
     app.include_router(example_router)
     app.include_router(chat_router)
     app.include_router(rfq_router)
-    
+    app.include_router(evaluation_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
