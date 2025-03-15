@@ -11,8 +11,8 @@ class RequirementEvaluation(BaseModel):
 
 class RequirementMetadata(BaseModel):
     requirement: str
-    llm_evaluation: RequirementEvaluation
-    human_evaluation: RequirementEvaluation
+    llm_evaluation: RequirementEvaluation | None = None
+    human_evaluation: RequirementEvaluation | None = None
 
 class EvaluationDocument(Document):
     rfq_id: str

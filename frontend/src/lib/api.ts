@@ -59,22 +59,16 @@ export async function getRFQ(id: string): Promise<RFQResponse> {
     return data as RFQResponse;
 }
 
-export async function getEvaluations(): Promise<EvaluationResponse[]> {
-    const { data, error } = await client.GET("/evaluation/");
-    if (error) handleApiError(error);
-    if (!data) throw new Error("No data returned");
-    return data as EvaluationResponse[];
-}
 
 export async function getEvaluation(id: string): Promise<EvaluationResponse> {
-    const { data, error } = await client.GET("/evaluation/{evaluation_id}", {params: {path: {evaluation_id: id}}});
+    const { data, error } = await client.GET("/evaluation/{rfq_id}", {params: {path: {rfq_id: id}}});
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as EvaluationResponse;
 }
 
-export async function updateEvaluation(id: string, evaluation: EvaluationResponse): Promise<EvaluationResponse> {
-    const { data, error } = await client.PUT("/evaluation/{evaluation_id}", {params: {path: {evaluation_id: id}}, body: evaluation});
+export async function requestEvaluation(id: string): Promise<EvaluationResponse> {
+    const { data, error } = await client.PUT("/evaluation/{rfq_id}", {params: {path: {rfq_id: id}}});
     if (error) handleApiError(error);
     if (!data) throw new Error("No data returned");
     return data as EvaluationResponse;

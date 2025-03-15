@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { getRFQ } from "@/lib/api";
+import { getRFQ, requestEvaluation } from "@/lib/api";
 import { RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -32,6 +33,12 @@ export default function RFQDetailsPage() {
             [index]: note
         }));
     };
+
+    const requestEvaluationClicked = async () => {
+        if (!rfq) return;
+        const evaluation = await requestEvaluation(rfq.id);
+        console.log(evaluation);
+    }
 
     if (!id) {
         return <div className="container mx-auto p-5">
@@ -65,6 +72,10 @@ export default function RFQDetailsPage() {
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Description</h2>
                         <p className="text-gray-700 whitespace-pre-wrap">{rfq.description}</p>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <Button onClick={() => requestEvaluationClicked()}>Request evaluation</Button>
                     </div>
 
                     <div>
