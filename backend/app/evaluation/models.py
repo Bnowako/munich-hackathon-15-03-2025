@@ -6,13 +6,13 @@ from pydantic import BaseModel, Field
 
 
 class RequirementEvaluation(BaseModel):
-    evaluation: Literal["ELIGIBLE", "NOT_ELIGIBLE", "UNKNOWN"]
+    evaluation: Literal["ELIGIBLE", "NOT_ELIGIBLE", "UNKNOWN"] | None = None
     reason: str | None = None
 
 class RequirementMetadata(BaseModel):
     requirement: str
-    llm_evaluation: RequirementEvaluation | None = None
-    human_evaluation: RequirementEvaluation | None = None
+    llm_evaluation: RequirementEvaluation
+    human_evaluation: RequirementEvaluation
 
 class EvaluationDocument(Document):
     rfq_id: str
