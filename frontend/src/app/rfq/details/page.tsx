@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { getEvaluation, getRFQ, requestEvaluation } from "@/lib/api";
+import { useEffect, useState, useRef } from "react";
+import { getEvaluation, getRFQ, requestEvaluation, updateRequirementEvaluation } from "@/lib/api";
 import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,36 @@ export default function RFQDetailsPage() {
     const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
     const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
     const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
     const id = searchParams.get('id');
 
     useEffect(() => {
+        isEditingRef.current = isEditing;
+    }, [isEditing]);
+
+    useEffect(() => {
         if (!id) return;
-        
+
         (async () => {
             const rfqData = await getRFQ(id);
             setRFQ(rfqData);
-            // Initialize empty notes for each requirement
             const ev = await getEvaluation(id);
             setEvaluation(ev);
-            const intervalId = setInterval(async () => {
-                const updatedEv = await getEvaluation(id);
-                setEvaluation(updatedEv);
-            }, 5000);
-            return () => clearInterval(intervalId);
+
+            let intervalId: NodeJS.Timeout | null = null;
+
+            intervalId = setInterval(async () => {
+                if (!isEditingRef.current) {
+                    const updatedEv = await getEvaluation(id);
+                    setEvaluation(updatedEv);
+                }
+            }, 1000);
+
+            return () => {
+                if (intervalId) clearInterval(intervalId);
+            };
         })();
     }, [id]);
 
@@ -49,9 +62,9 @@ export default function RFQDetailsPage() {
 
     const handleReasonChange = async (index: number, newReason: string) => {
         if (!evaluation) return;
-        
+
         const originalReason = evaluation.requirements_metadata[index]?.llm_evaluation?.reason || '';
-        
+
         // Track modified state
         if (newReason !== originalReason) {
             setModifiedReasons(prev => new Set(prev).add(index));
@@ -73,7 +86,7 @@ export default function RFQDetailsPage() {
                 }
             }
         };
-        
+
         setEvaluation(prev => prev ? {
             ...prev,
             requirements_metadata: updatedMetadata
@@ -92,32 +105,33 @@ export default function RFQDetailsPage() {
     }
 
     const startEditing = (index: number) => {
-        setEditingReasons(prev => new Set(prev).add(index));
+        // Switch to editing the new textarea
+        setEditingReasons(new Set([index]));
+        setIsEditing(true);
     };
 
-    const stopEditing = (index: number) => {
-        setEditingReasons(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(index);
-            return newSet;
-        });
+    const stopEditing = () => {
+        setEditingReasons(new Set());
+        setIsEditing(false);
     };
 
-    const handleReevaluation = (index: number) => {
-        if (!evaluation) return;
-        
+    const handleReevaluation = async (index: number) => {
+        if (!evaluation || !rfq) return;
+
         const requirementMetadata = evaluation.requirements_metadata[index];
         const updatedReason = requirementMetadata?.llm_evaluation?.reason;
-        
-        
+        if (!updatedReason || updatedReason === '') return;
 
         console.log('Reevaluating requirement:', {
             index,
             metadata: requirementMetadata,
             updatedReason,
         });
-        
 
+        const updatedEvaluation = await updateRequirementEvaluation(rfq.id, {
+            requirement: requirementMetadata.requirement,
+            updated_reason: updatedReason
+        });
 
         // Clear the modified state for this requirement
         setModifiedReasons(prev => {
@@ -125,6 +139,10 @@ export default function RFQDetailsPage() {
             newSet.delete(index);
             return newSet;
         });
+        
+        // Close all textareas and exit editing mode
+        setEditingReasons(new Set());
+        setIsEditing(false);
     };
 
     const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -152,17 +170,17 @@ export default function RFQDetailsPage() {
     return (
         <div className="container mx-auto p-5">
             <div className="mb-4">
-                <button 
+                <button
                     onClick={() => window.history.back()}
                     className="text-blue-600 hover:text-blue-800"
                 >
                     ← Back to Overview
                 </button>
             </div>
-            
+
             <div className="bg-white shadow-lg rounded-lg p-6">
                 <h1 className="text-3xl font-bold mb-6">{rfq.title}</h1>
-                
+
                 <div className="grid gap-6">
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Description</h2>
@@ -189,11 +207,11 @@ export default function RFQDetailsPage() {
                                     {rfq.requirements.map((req, index) => (
                                         <TableRow key={index}>
                                             <TableCell className="max-w-[150px]">{req}</TableCell>
-                                            
+
                                             <TableCell>
                                                 {(() => {
                                                     const status = evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation;
-                                                    switch(status) {
+                                                    switch (status) {
                                                         case 'ELIGIBLE':
                                                             return '✅';
                                                         case 'NOT_ELIGIBLE':
@@ -205,6 +223,8 @@ export default function RFQDetailsPage() {
                                                                     <span className="ml-2">🤖 In progress</span>
                                                                 </div>
                                                             );
+                                                        case 'INITIAL':
+                                                            return '🫎';
                                                         default:
                                                             return '🫥';
                                                     }
@@ -221,22 +241,17 @@ export default function RFQDetailsPage() {
                                                                 autoResizeTextArea(e);
                                                             }}
                                                             onFocus={(e) => autoResizeTextArea(e)}
+                                                            onBlur={() => {
+                                                                // Optional: if you want to stop editing when clicking outside
+                                                                // stopEditing();
+                                                            }}
                                                             style={{ height: 'auto' }}
                                                             rows={1}
                                                             autoFocus
                                                         />
-                                                        <div className="flex justify-end gap-2">
-                                                            <Button 
-                                                                variant="outline" 
-                                                                size="sm"
-                                                                onClick={() => stopEditing(index)}
-                                                            >
-                                                                Done
-                                                            </Button>
-                                                        </div>
                                                     </div>
                                                 ) : (
-                                                    <div 
+                                                    <div
                                                         className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
                                                         onClick={() => startEditing(index)}
                                                     >
@@ -245,12 +260,12 @@ export default function RFQDetailsPage() {
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                <Button 
+                                                <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleReevaluation(index)}
                                                     disabled={
-                                                        !modifiedReasons.has(index) || 
+                                                        !modifiedReasons.has(index) ||
                                                         evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation === 'IN_PROGRESS'
                                                     }
                                                 >

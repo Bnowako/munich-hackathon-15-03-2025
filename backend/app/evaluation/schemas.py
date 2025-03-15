@@ -17,7 +17,7 @@ class EvaluationResponse(BaseModel):
     
 
 class UpdateRequirementEvaluationRequest(BaseModel):
-    reason: str
+    requirement: str
     updated_reason: str
     
 
