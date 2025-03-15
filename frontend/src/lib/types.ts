@@ -252,7 +252,7 @@ export interface components {
         /** RequirementEvaluationResponse */
         RequirementEvaluationResponse: {
             /** Evaluation */
-            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS") | null;
+            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL") | null;
             /** Reason */
             reason?: string | null;
         };

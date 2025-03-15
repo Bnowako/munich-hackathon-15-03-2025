@@ -42,7 +42,7 @@ async def update_requirement_evaluation(rfq_id: str, request: UpdateRequirementE
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
-    asyncio.create_task(update_requirement_based_on_human_feedback(evaluation, request.reason, request.updated_reason, company.id)) #type: ignore
+    asyncio.create_task(update_requirement_based_on_human_feedback(evaluation, request.requirement, request.updated_reason, company.id)) #type: ignore
 
 
 

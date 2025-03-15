@@ -16,4 +16,3 @@ async def update_company_facts(id: str, reason: str, updated_reason: str) -> Com
     company.facts = updated_facts.facts
 
     await company.save()
-    return company

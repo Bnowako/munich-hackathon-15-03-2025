@@ -30,11 +30,11 @@ async def create_blank_evaluation(rfq_id: str):
             RequirementMetadata(
                 requirement=requirement,
                 llm_evaluation=RequirementEvaluation(
-                    evaluation=None,
+                    evaluation="INITIAL",
                     reason="Not evaluated yet"
                 ),
                 human_evaluation=RequirementEvaluation(
-                    evaluation=None,
+                    evaluation="INITIAL",
                     reason="Not evaluated yet"
                 )
             )
@@ -72,14 +72,15 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument, company_id: str)
 
 
 
-async def update_requirement_based_on_human_feedback(evaluation: EvaluationDocument, reason: str, updated_reason: str, company_id: str):
-    logger.info(f"Invoking update_requirement for {evaluation.rfq_id} with reason: {reason} and updated_reason: {updated_reason} and company_id: {company_id}")
+async def update_requirement_based_on_human_feedback(evaluation: EvaluationDocument, requirement: str, updated_reason: str, company_id: str):
+    logger.info(f"Invoking update_requirement for {evaluation.rfq_id} with reason: {requirement} and updated_reason: {updated_reason} and company_id: {company_id}")
     
     # todo this gets only the first metadata that matches the requirement
-    evaluation_metadata = next((metadata for metadata in evaluation.requirements_metadata if metadata.requirement == reason), None)
+    evaluation_metadata = next((metadata for metadata in evaluation.requirements_metadata if metadata.requirement == requirement), None)
     if evaluation_metadata is None:
         return None
-    
+    previous_reason: str = evaluation_metadata.llm_evaluation.reason
+
     logger.info(f"Evaluating requirement: {evaluation_metadata.requirement}")
     # Create a new instance of the nested model with updated values
     updated_llm_evaluation = RequirementEvaluation(evaluation="IN_PROGRESS",reason="LLM evaluation")
@@ -87,7 +88,7 @@ async def update_requirement_based_on_human_feedback(evaluation: EvaluationDocum
     await evaluation.save()
 
     
-    await update_company_facts(company_id, reason, updated_reason)
+    await update_company_facts(id=company_id, reason=previous_reason, updated_reason=updated_reason)
     llm_evaluation = await evaluate_requirement(evaluation_metadata.requirement, await get_company_context(company_id))
 
     updated_llm_evaluation = RequirementEvaluation(evaluation=llm_evaluation.evaluation, reason=llm_evaluation.reason)

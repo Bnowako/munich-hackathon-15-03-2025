@@ -223,6 +223,8 @@ export default function RFQDetailsPage() {
                                                                     <span className="ml-2">🤖 In progress</span>
                                                                 </div>
                                                             );
+                                                        case 'INITIAL':
+                                                            return '🫎';
                                                         default:
                                                             return '🫥';
                                                     }
