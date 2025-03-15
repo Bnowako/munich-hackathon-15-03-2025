@@ -11,6 +11,7 @@ from .example.models import ExampleDocument
 from .chat.router import router as chat_router
 from .rfq.models import RFQDocument
 from .rfq.rfq_mock import rfq_mock
+from .rfq.router import router as rfq_router
 
 
 logging.basicConfig(level=logging.INFO)
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
     app = MongoFastAPI(lifespan=db_lifespan, openapi_prefix="/api")  # type: ignore
     app.include_router(example_router)
     app.include_router(chat_router)
+    app.include_router(rfq_router)
     
     app.add_middleware(
         CORSMiddleware,
