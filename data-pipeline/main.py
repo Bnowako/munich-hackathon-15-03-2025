@@ -117,12 +117,12 @@ async def parse_xml_files(folder: str, max_files: int = 10):
 
 async def main():
     await init_db()
-    pased_rfqs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=50)
+    pased_rfqs = await parse_xml_files('resources', max_files=50)
 
-    for i, rfq in enumerate(pased_rfqs):
-        logger.info(f"Inserting document number {i}: {rfq.title}")
-        doc = RFQDocument(parsed=rfq)
-        await doc.insert()
+    # for i, rfq in enumerate(pased_rfqs):
+        # logger.info(f"Inserting document number {i}: {rfq.title}")
+        # doc = RFQDocument(parsed=rfq)
+        # await doc.insert()
 
 
 
