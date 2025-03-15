@@ -50,7 +50,7 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument):
         
         # Create a new instance of the nested model with updated values
         updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
-            "evaluation": "ELIGIBLE",
+            "evaluation": "IN_PROGRESS",
             "reason": "LLM evaluation"
         })
         # Reassign the new instance back to the list
@@ -58,3 +58,10 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument):
         
         await evaluation.save()
         await asyncio.sleep(4)
+
+        updated_llm_evaluation = metadata.llm_evaluation.model_copy(update={
+            "evaluation": "ELIGIBLE",
+            "reason": "LLM evaluation"
+        })
+        evaluation.requirements_metadata[index].llm_evaluation = updated_llm_evaluation
+        await evaluation.save()

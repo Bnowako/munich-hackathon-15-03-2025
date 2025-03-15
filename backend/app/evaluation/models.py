@@ -4,9 +4,10 @@ from beanie import Document
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
+EvaluationType = Literal["ELIGIBLE", "NOT_ELIGIBLE", "UNKNOWN", "IN_PROGRESS"]
 
 class RequirementEvaluation(BaseModel):
-    evaluation: Literal["ELIGIBLE", "NOT_ELIGIBLE", "UNKNOWN"] | None = None
+    evaluation: EvaluationType | None = None
     reason: str | None = None
 
 class RequirementMetadata(BaseModel):
