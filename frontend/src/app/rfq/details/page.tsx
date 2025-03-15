@@ -22,6 +22,11 @@ export default function RFQDetailsPage() {
             // Initialize empty notes for each requirement
             const ev = await getEvaluation(id);
             setEvaluation(ev);
+            const intervalId = setInterval(async () => {
+                const updatedEv = await getEvaluation(id);
+                setEvaluation(updatedEv);
+            }, 5000);
+            return () => clearInterval(intervalId);
         })();
     }, [id]);
 
@@ -86,6 +91,9 @@ export default function RFQDetailsPage() {
                                             Requirement
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Evaluation
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Notes
                                         </th>
                                     </tr>
@@ -95,6 +103,9 @@ export default function RFQDetailsPage() {
                                         <tr key={index}>
                                             <td className="px-6 py-4 text-sm text-gray-900">
                                                 {req}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm">
+                                                {evaluation?.requirements_metadata[index]?.llm_evaluation?.evaluation || 'No evaluation yet'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <textarea
