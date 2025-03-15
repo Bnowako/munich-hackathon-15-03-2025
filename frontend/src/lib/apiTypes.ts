@@ -11,8 +11,9 @@ export type UpdateRequirementEvaluationRequest = components["schemas"]["UpdateRe
 export type RequirementMetadataResponse = components["schemas"]["RequirementMetadataResponse"]
 export type RequirementEvaluationResponse = components["schemas"]["RequirementEvaluationResponse"]
 export type CompanyResponse = components["schemas"]["CompanyResponse"]
-export type CompanyCreate = components["schemas"]["CompanyCreate"]
 export type CompanyUpdate = components["schemas"]["CompanyUpdate"]
+export type RFQStatusResponse = components["schemas"]["RFQStatusResponse"]
+
     export type BaseMessage = {
     type: "human" | "ai" | "tool",
     content: string,

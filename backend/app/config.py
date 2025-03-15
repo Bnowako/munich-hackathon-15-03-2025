@@ -15,6 +15,7 @@ from .evaluation.models import EvaluationDocument
 from .evaluation.router import router as evaluation_router
 from .company.models import CompanyDocument
 from .company.router import router as company_router
+from .dashboard.router import router as dashboard_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     app.include_router(rfq_router)
     app.include_router(evaluation_router)
     app.include_router(company_router)
+    app.include_router(dashboard_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

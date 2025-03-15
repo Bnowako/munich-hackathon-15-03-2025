@@ -144,6 +144,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rfqs By Status */
+        get: operations["get_rfqs_by_status_dashboard__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/status": {
         parameters: {
             query?: never;
@@ -224,6 +241,15 @@ export interface components {
             requirements: components["schemas"]["RequirementResponse"][];
             /** Raw Xml */
             raw_xml: string;
+        };
+        /** RFQStatusResponse */
+        RFQStatusResponse: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: string;
         };
         /** RequirementEvaluationResponse */
         RequirementEvaluationResponse: {
@@ -619,6 +645,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_rfqs_by_status_dashboard__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RFQStatusResponse"][];
                 };
             };
         };

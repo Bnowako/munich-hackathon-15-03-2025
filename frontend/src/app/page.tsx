@@ -2,6 +2,8 @@
 
 import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { useEffect, useState } from "react"
+import { getRFQsByStatus } from "@/lib/api"
 
 import {
   Card,
@@ -19,11 +21,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-const chartData = [
-  { status: "Open", count: 186 },
-  { status: "Evaluating", count: 305 },
-  { status: "Closed", count: 237 },
-]
 
 const chartConfig = {
   desktop: {
@@ -37,6 +34,30 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export default function Page() {
+  const [chartData, setChartData] = useState<{ status: string; count: number }[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const data = await getRFQsByStatus();
+        // Count items by status
+        const statusCounts = data.reduce((acc, item) => {
+          acc[item.status] = (acc[item.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        // Convert to array format needed for chart
+        setChartData(Object.entries(statusCounts).map(([status, count]) => ({
+          status,
+          count
+        })));
+      } catch (error) {
+        console.error("Error fetching RFQs by status:", error);
+      }
+    }
+    fetchData();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -64,6 +85,5 @@ export default function Page() {
         </ChartContainer>
       </CardContent>
     </Card>
-
   )
 }
