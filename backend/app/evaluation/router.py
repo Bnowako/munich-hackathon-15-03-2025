@@ -1,13 +1,21 @@
+import asyncio
 from typing import List
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument, RequirementEvaluation
 from .schemas import EvaluationResponse, RequirementMetadataResponse, RequirementEvaluationResponse
-from .facade import create_evaluation
+from .facade import create_blank_evaluation, invoke_llm_evaluation
+
+import logging
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
 @router.get("/{rfq_id}")
 async def get_evaluation(rfq_id: str) -> EvaluationResponse:
+    evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
+    if evaluation is None:
+        await create_blank_evaluation(rfq_id)
+    
     evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Evaluation not found")
@@ -17,18 +25,15 @@ async def get_evaluation(rfq_id: str) -> EvaluationResponse:
 @router.put("/{rfq_id}")
 async def request_evaluation(rfq_id: str):
     evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
-    if evaluation is not None:
-        raise HTTPException(status_code=400, detail="Evaluation already exists")
-    
-    await create_evaluation(rfq_id)
-    
-    # todo request evaluation from llm
-
-
-
-def _map_requirement_evaluation_to_response(evaluation: RequirementEvaluation | None) -> RequirementEvaluationResponse | None:
     if evaluation is None:
-        return None
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+    
+    logger.info(f"Requesting evaluation for {rfq_id}")
+    asyncio.create_task(invoke_llm_evaluation(evaluation))
+
+
+
+def _map_requirement_evaluation_to_response(evaluation: RequirementEvaluation) -> RequirementEvaluationResponse:
     return RequirementEvaluationResponse(
         evaluation=evaluation.evaluation,
         reason=evaluation.reason

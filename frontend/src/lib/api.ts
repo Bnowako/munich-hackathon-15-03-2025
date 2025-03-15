@@ -70,7 +70,6 @@ export async function getEvaluation(id: string): Promise<EvaluationResponse> {
 export async function requestEvaluation(id: string): Promise<EvaluationResponse> {
     const { data, error } = await client.PUT("/evaluation/{rfq_id}", {params: {path: {rfq_id: id}}});
     if (error) handleApiError(error);
-    if (!data) throw new Error("No data returned");
     return data as EvaluationResponse;
 }
 

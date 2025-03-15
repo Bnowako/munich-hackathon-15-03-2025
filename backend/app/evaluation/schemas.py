@@ -1,14 +1,14 @@
 from pydantic import BaseModel
-from typing import Literal
+from .models import EvaluationType
 
 class RequirementEvaluationResponse(BaseModel):
-    evaluation: Literal["ELIGIBLE", "NOT_ELIGIBLE", "UNKNOWN"]
+    evaluation: EvaluationType | None = None
     reason: str | None = None
 
 class RequirementMetadataResponse(BaseModel):
     requirement: str
-    llm_evaluation: RequirementEvaluationResponse | None = None
-    human_evaluation: RequirementEvaluationResponse | None = None
+    llm_evaluation: RequirementEvaluationResponse
+    human_evaluation: RequirementEvaluationResponse
 
 class EvaluationResponse(BaseModel):
     id: str
