@@ -111,11 +111,11 @@ async def parse_xml_files(folder: str, max_files: int = 10):
 
 async def main():
     await init_db()
-    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=100000)
+    docs = await parse_xml_files('/Users/blazejnowakowski/Projects/munich-hackathon-15-03-2025/backend/resources/rfqs', max_files=50)
 
     # for doc in docs:
-        # logger.info(f"Inserting document: {doc.title}")
-        # await doc.insert()
+    #     logger.info(f"Inserting document: {doc.title}")
+    #     await doc.insert()
 
 
 
