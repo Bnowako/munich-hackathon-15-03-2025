@@ -232,7 +232,7 @@ export default function RFQDetailsPage() {
                                 <TableBody>
                                     {rfq.requirements.map((req, index) => (
                                         <TableRow key={index}>
-                                            <TableCell className="max-w-[150px]">{req}</TableCell>
+                                            <TableCell className="max-w-[150px]">{req.requirement}</TableCell>
 
                                             <TableCell>
                                                 {(() => {

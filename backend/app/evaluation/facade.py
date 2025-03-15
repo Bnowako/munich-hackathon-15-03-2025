@@ -21,14 +21,14 @@ async def init_evaluation(rfq_id: str):
     for requirement in rfq.enhanced.requirements:
         evaluation.requirements_metadata.append(
             RequirementMetadata(
-                requirement=requirement,
+                requirement=requirement.requirement,
                 evaluation=RequirementEvaluation(
                     evaluation="INITIAL",
                     reason="Not evaluated yet"
                 ),
             )
         )
-        logger.info(f"Evaluating requirement: {requirement}")
+        logger.info(f"Evaluating requirement: {requirement.requirement}")
     
     await evaluation.save()
     

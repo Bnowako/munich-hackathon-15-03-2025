@@ -221,7 +221,7 @@ export interface components {
             /** Description */
             description: string;
             /** Requirements */
-            requirements: string[];
+            requirements: components["schemas"]["RequirementResponse"][];
         };
         /** RequirementEvaluationResponse */
         RequirementEvaluationResponse: {
@@ -235,6 +235,13 @@ export interface components {
             /** Requirement */
             requirement: string;
             evaluation: components["schemas"]["RequirementEvaluationResponse"];
+        };
+        /** RequirementResponse */
+        RequirementResponse: {
+            /** Requirement */
+            requirement: string;
+            /** Requirement Source */
+            requirement_source: string;
         };
         /** UpdateRequirementEvaluationRequest */
         UpdateRequirementEvaluationRequest: {

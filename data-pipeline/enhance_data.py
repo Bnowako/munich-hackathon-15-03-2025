@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 import xmltodict
 from config import init_db
-from models import EnhancedRFQ, ParsedXmlRfQ, RFQDocument
+from models import EnhancedRFQ, ParsedXmlRfQ, RFQDocument, Requirement
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -17,8 +17,13 @@ load_dotenv()
 class TranslatedText(BaseModel):
     text: str
 
+class ExtractedRequirement(BaseModel):
+    requirement: str
+    requirement_source: str
+
 class Requirements(BaseModel):
-    requirements: List[str]
+    requirements: List[ExtractedRequirement]
+    
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
 translation_chat = llm.with_structured_output(TranslatedText) # type: ignore
@@ -33,11 +38,16 @@ async def main(save_to_db: bool = False):
     for doc in docs:
         translated_title: TranslatedText = await translation_chat.ainvoke(f"Translate this to english: {doc.parsed.title}") # type: ignore
         translated_description: TranslatedText = await translation_chat.ainvoke(f"Translate this to english: {doc.parsed.description}") # type: ignore
-        requirements: Requirements = await requirements_chat.ainvoke(f"Extract requirements from this document: {doc.parsed.raw_xml}") # type: ignore
+        requirements: Requirements = await requirements_chat.ainvoke(f"Extract requirements from this document add exact source of the requirement that is in the xml: {doc.parsed.raw_xml}") # type: ignore
         doc.enhanced = EnhancedRFQ(
             title=translated_title.text,
             description=translated_description.text,
-            requirements=requirements.requirements
+            requirements=[
+                Requirement(
+                requirement=requirement.requirement, 
+                requirement_source=requirement.requirement_source
+                ) for requirement in requirements.requirements
+                ]
         )
         await doc.save()
 
