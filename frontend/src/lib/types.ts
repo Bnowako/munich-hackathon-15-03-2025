@@ -222,6 +222,8 @@ export interface components {
             description: string;
             /** Requirements */
             requirements: components["schemas"]["RequirementResponse"][];
+            /** Raw Xml */
+            raw_xml: string;
         };
         /** RequirementEvaluationResponse */
         RequirementEvaluationResponse: {

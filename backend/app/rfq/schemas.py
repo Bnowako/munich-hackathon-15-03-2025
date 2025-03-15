@@ -9,3 +9,4 @@ class RFQResponse(BaseModel):
     title: str
     description: str
     requirements: list[RequirementResponse]
+    raw_xml: str

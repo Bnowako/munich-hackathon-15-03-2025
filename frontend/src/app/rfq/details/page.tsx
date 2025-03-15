@@ -26,6 +26,8 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github.css';
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -39,6 +41,8 @@ export default function RFQDetailsPage() {
     const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
+    const [formattedContent, setFormattedContent] = useState<string>("");
+    const [viewMode, setViewMode] = useState<'xml' | 'json'>('xml');
 
     // Sync isEditing with ref
     useEffect(() => {
@@ -192,6 +196,50 @@ export default function RFQDetailsPage() {
         setDialogOpen(true);
     };
 
+    // Add this function to format XML
+    const formatXML = (xml: string): string => {
+        let formatted = '';
+        let indent = '';
+        
+        xml.split(/>\s*</).forEach(function(node) {
+            if (node.match(/^\/\w/)) {
+                // Decrease indent for closing tag
+                indent = indent.substring(2);
+            }
+            
+            formatted += indent + '<' + node + '>\n';
+            
+            if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith("?")) {
+                // Increase indent for opening tag (not self-closing)
+                indent += '  ';
+            }
+        });
+        
+        return formatted.substring(1, formatted.length - 2);
+    };
+    
+    // Update the dialog content when a requirement is selected
+    useEffect(() => {
+        if (selectedRequirement !== null && rfq && evaluation) {
+            // Check if raw_xml exists
+            if (rfq.raw_xml) {
+                // Use the raw XML directly
+                const formatted = formatXML(rfq.raw_xml);
+                setFormattedContent(formatted);
+                
+                // Apply syntax highlighting after the component renders
+                setTimeout(() => {
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block as HTMLElement);
+                    });
+                }, 0);
+            } else {
+                // Fallback if raw_xml doesn't exist
+                setFormattedContent("No raw XML data available");
+            }
+        }
+    }, [selectedRequirement, rfq, evaluation]);
+
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -335,19 +383,55 @@ export default function RFQDetailsPage() {
                                 <h3 className="text-lg font-semibold mb-2">
                                     Requirement: {rfq.requirements[selectedRequirement].requirement}
                                 </h3>
-                                <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
-                                    <pre className="text-sm whitespace-pre-wrap">
-                                        {JSON.stringify(
-                                            {
-                                                requirement: rfq.requirements[selectedRequirement],
-                                                evaluation: evaluation.requirements_metadata[selectedRequirement],
-                                                rfq: rfq,
-                                            },
-                                            null,
-                                            2
-                                        )}
-                                    </pre>
+                                
+                                <div className="flex space-x-2 mb-4">
+                                    <Button 
+                                        variant={viewMode === 'xml' ? 'default' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => setViewMode('xml')}
+                                    >
+                                        XML View
+                                    </Button>
+                                    <Button 
+                                        variant={viewMode === 'json' ? 'default' : 'outline'} 
+                                        size="sm"
+                                        onClick={() => setViewMode('json')}
+                                    >
+                                        JSON View
+                                    </Button>
                                 </div>
+                                
+                                {/* XML View */}
+                                {viewMode === 'xml' && (
+                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+                                        {rfq.raw_xml ? (
+                                            <pre className="text-sm">
+                                                <code className="language-xml">{formattedContent}</code>
+                                            </pre>
+                                        ) : (
+                                            <div className="text-amber-600 p-2 bg-amber-50 rounded">
+                                                No raw XML data available for this RFQ
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* JSON View */}
+                                {viewMode === 'json' && (
+                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+                                        <pre className="text-sm whitespace-pre-wrap">
+                                            {JSON.stringify(
+                                                {
+                                                    requirement: rfq.requirements[selectedRequirement],
+                                                    evaluation: evaluation.requirements_metadata[selectedRequirement],
+                                                    rfq: rfq,
+                                                },
+                                                null,
+                                                2
+                                            )}
+                                        </pre>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
