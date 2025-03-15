@@ -75,16 +75,21 @@ async def invoke_llm_evaluation(evaluation: EvaluationDocument, company_id: str)
 async def update_requirement_based_on_human_feedback(evaluation: EvaluationDocument, requirement: str, updated_reason: str, company_id: str):
     logger.info(f"Invoking update_requirement for {evaluation.rfq_id} with reason: {requirement} and updated_reason: {updated_reason} and company_id: {company_id}")
     
-    # todo this gets only the first metadata that matches the requirement
-    evaluation_metadata = next((metadata for metadata in evaluation.requirements_metadata if metadata.requirement == requirement), None)
-    if evaluation_metadata is None:
+    # Find the index of the metadata that matches the requirement
+    metadata_index = next((index for index, metadata in enumerate(evaluation.requirements_metadata) 
+                          if metadata.requirement == requirement), None)
+    if metadata_index is None:
         return None
+    
+    evaluation_metadata = evaluation.requirements_metadata[metadata_index]
     previous_reason: str = evaluation_metadata.llm_evaluation.reason
 
     logger.info(f"Evaluating requirement: {evaluation_metadata.requirement}")
     # Create a new instance of the nested model with updated values
     updated_llm_evaluation = RequirementEvaluation(evaluation="IN_PROGRESS",reason="LLM evaluation")
-    evaluation_metadata.llm_evaluation = updated_llm_evaluation
+    
+    # Update the evaluation in the list using the index
+    evaluation.requirements_metadata[metadata_index].llm_evaluation = updated_llm_evaluation
     await evaluation.save()
 
     
@@ -92,5 +97,7 @@ async def update_requirement_based_on_human_feedback(evaluation: EvaluationDocum
     llm_evaluation = await evaluate_requirement(evaluation_metadata.requirement, await get_company_context(company_id))
 
     updated_llm_evaluation = RequirementEvaluation(evaluation=llm_evaluation.evaluation, reason=llm_evaluation.reason)
-    evaluation_metadata.llm_evaluation = updated_llm_evaluation
+    
+    # Update the evaluation in the list using the index
+    evaluation.requirements_metadata[metadata_index].llm_evaluation = updated_llm_evaluation
     await evaluation.save()
