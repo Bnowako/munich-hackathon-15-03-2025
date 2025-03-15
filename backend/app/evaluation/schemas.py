@@ -15,3 +15,9 @@ class EvaluationResponse(BaseModel):
     rfq_id: str
     requirements_metadata: list[RequirementMetadataResponse]
     
+
+class UpdateRequirementEvaluationRequest(BaseModel):
+    reason: str
+    updated_reason: str
+    
+

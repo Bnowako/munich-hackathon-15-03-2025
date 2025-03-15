@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException
 from .models import EvaluationDocument, RequirementEvaluation
 from .schemas import EvaluationResponse, RequirementMetadataResponse, RequirementEvaluationResponse
 from .facade import create_blank_evaluation, invoke_llm_evaluation
+from .schemas import UpdateRequirementEvaluationRequest
 
 import logging
 logger = logging.getLogger(__name__)
@@ -32,6 +33,15 @@ async def request_evaluation(rfq_id: str):
     
     logger.info(f"Requesting evaluation for {rfq_id}")
     asyncio.create_task(invoke_llm_evaluation(evaluation, company.id))
+
+
+@router.put("/{rfq_id}/requirements/{requirement_id}")
+async def update_requirement_evaluation(rfq_id: str, request: UpdateRequirementEvaluationRequest):
+    evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == rfq_id)
+    if evaluation is None:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+    
+    
 
 
 
