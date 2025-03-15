@@ -170,8 +170,6 @@ export interface components {
             description: string;
             /** Requirements */
             requirements: string[];
-            /** Raw */
-            raw: string;
         };
         /** ValidationError */
         ValidationError: {

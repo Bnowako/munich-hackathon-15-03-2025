@@ -5,4 +5,3 @@ class RFQResponse(BaseModel):
     title: str
     description: str
     requirements: list[str]
-    raw: str
