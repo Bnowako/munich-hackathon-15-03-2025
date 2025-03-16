@@ -49,6 +49,7 @@ async def main(save_to_db: bool = False):
                                                         - We are preparing human readable easy to understand RFQ for the customer.
                                                         - First you need to extract general information about the RFQ and general requirements.
                                                         - Then you need to extract information about lots and their requirements.
+                                                        - Requirements are things that the supplier needs to provide to take part in the RFQ.
                                                                      """) # type: ignore
         
         logger.info(f"General structured output: Done!")
