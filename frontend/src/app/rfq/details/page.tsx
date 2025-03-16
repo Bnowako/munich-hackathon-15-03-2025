@@ -34,21 +34,13 @@ export default function RFQDetailsPage() {
     const onGeneralRequirementUpdate = async (index: number, value: string) => {
         if (!rfq) return;
         console.log("onGeneralRequirementUpdate", index, value);
-        const newRfq = { ...rfq };
-        newRfq.requirements[index].evaluation.reason = value;
         await updateRequirementEvaluation(id!, index, value);
-        setRFQ(newRfq);
     };
 
     const onLotRequirementUpdate = async (lotIndex: number, reqIndex: number, value: string) => {
         if (!rfq) return;
         console.log("onLotRequirementUpdate", lotIndex, reqIndex, value);
-        const newRfq = { ...rfq };
-        if (newRfq.lots[lotIndex].requirements) {
-            newRfq.lots[lotIndex].requirements![reqIndex].evaluation.reason = value;
-        }
         await updateRequirementEvaluation(id!, reqIndex, value, lotIndex);
-        setRFQ(newRfq);
     };
 
     useEffect(() => {

@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 load_dotenv()
 
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
 
 general_structured = llm.with_structured_output(ExtractedEnhancedRFQ) # type: ignore
 
@@ -35,6 +35,7 @@ async def main(save_to_db: bool = False):
                                                         - First you need to extract general information about the RFQ and general requirements.
                                                         - Then you need to extract information about lots and their requirements.
                                                         - Requirements are things that the supplier needs to provide to take part in the RFQ.
+                                                        - Always add general address to the title.
 
 
                                                         Focused Guidelines on Extracting Requirements
@@ -74,6 +75,7 @@ async def main(save_to_db: bool = False):
         logger.info(f"General structured output: Done!")
         doc.enhanced = map_extracted_rfq_to_rfq_document(general_structured_output) # type: ignore
         await doc.save()
+        await asyncio.sleep(2)
 
     # logger.info(f"Found {len(docs)} documents")
 
