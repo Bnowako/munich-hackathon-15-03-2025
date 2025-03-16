@@ -54,13 +54,13 @@ export default function Page() {
         const data = await getRFQsByStatus();
         // Define status order
         const statusOrder = ['open', 'in evaluation', 'closed'];
-        
+
         // Count items by status
         const statusCounts = data.reduce((acc, item) => {
           acc[item.status] = (acc[item.status] || 0) + 1;
           return acc;
         }, {} as Record<string, number>);
-        
+
         // Create array with all statuses, defaulting to 0 if no count exists
         setChartData(
           statusOrder.map(status => ({
@@ -77,34 +77,36 @@ export default function Page() {
   }, []);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>RFQs by Status</CardTitle>
-        <CardDescription>Showing RFQs with updates in the last 30 days</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="status"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-            />
-            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <Bar
-              dataKey="count"
-              fill="var(--color-desktop)"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex items-center text-sm text-muted-foreground">
-        <TrendingUp className="mr-2 h-4 w-4 text-green-500" />
-        1 new RFQ added
-      </CardFooter>
-    </Card>
+    <div className="grid grid-cols-2 gap-4">
+        <Card >
+          <CardHeader>
+            <CardTitle>RFQs by Status</CardTitle>
+            <CardDescription>Showing RFQs with updates in the last 30 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig}>
+              <BarChart accessibilityLayer data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="status"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Bar
+                  dataKey="count"
+                  fill="var(--color-desktop)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+          <CardFooter className="flex items-center text-sm text-muted-foreground">
+            <TrendingUp className="mr-2 h-4 w-4 text-green-500" />
+            1 new RFQ added
+          </CardFooter>
+        </Card>
+    </div>
   )
 }
