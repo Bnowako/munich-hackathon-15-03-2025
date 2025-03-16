@@ -77,7 +77,10 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <>
+      <h1 className="text-4xl font-bold mb-2">Welcome to TenderPilot</h1>
+      <p className="text-xl text-muted-foreground mb-8">Here is the high level overview over relevant RFQs for you.</p>
+      <div className="grid grid-cols-2 gap-4">
         <Card >
           <CardHeader>
             <CardTitle>RFQs by Status</CardTitle>
@@ -107,6 +110,7 @@ export default function Page() {
             1 new RFQ added
           </CardFooter>
         </Card>
-    </div>
+      </div>
+    </>
   )
 }
