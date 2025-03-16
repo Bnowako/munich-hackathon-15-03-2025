@@ -25,7 +25,7 @@ export default function CompanyPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 8;
   
   useEffect(() => {
     loadCurrentCompany();
