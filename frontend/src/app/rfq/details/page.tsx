@@ -30,6 +30,24 @@ export default function RFQDetailsPage() {
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
 
+    const onGeneralRequirementUpdate = (index: number, value: string) => {
+        if (!rfq) return;
+        console.log("onGeneralRequirementUpdate", index, value);
+        const newRfq = { ...rfq };
+        newRfq.requirements[index].evaluation.reason = value;
+        setRFQ(newRfq);
+    };
+
+    const onLotRequirementUpdate = (lotIndex: number, reqIndex: number, value: string) => {
+        if (!rfq) return;
+        console.log("onLotRequirementUpdate", lotIndex, reqIndex, value);
+        const newRfq = { ...rfq };
+        if (newRfq.lots[lotIndex].requirements) {
+            newRfq.lots[lotIndex].requirements![reqIndex].evaluation.reason = value;
+        }
+        setRFQ(newRfq);
+    };
+
     useEffect(() => {
         if (!id || isEditing) return;
 
@@ -117,11 +135,7 @@ export default function RFQDetailsPage() {
                                         <RequirementRow
                                             key={index}
                                             requirement={req}
-                                            onUpdate={(value) => {
-                                                const newRfq = { ...rfq };
-                                                newRfq.requirements[index].evaluation.reason = value;
-                                                setRFQ(newRfq);
-                                            }}
+                                            onUpdate={(value) => onGeneralRequirementUpdate(index, value)}
                                             onEditingChange={setIsEditing}
                                         />
                                     ))}
@@ -160,15 +174,11 @@ export default function RFQDetailsPage() {
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
-                                                        {lot.requirements.map((req, index) => (
+                                                        {lot.requirements.map((req, reqIndex) => (
                                                                 <RequirementRow
-                                                                    key={index}
+                                                                    key={reqIndex}
                                                                     requirement={req}
-                                                                    onUpdate={(value) => {
-                                                                        const newRfq = { ...rfq };
-                                                                        newRfq.requirements[index].evaluation.reason = value;
-                                                                        setRFQ(newRfq);
-                                                                    }}
+                                                                    onUpdate={(value) => onLotRequirementUpdate(index, reqIndex, value)}
                                                                     onEditingChange={setIsEditing}
                                                                 />
                                                             ))}

@@ -11,7 +11,6 @@ from .example.models import ExampleDocument
 from .chat.router import router as chat_router
 from .rfq.models import RFQDocument
 from .rfq.router import router as rfq_router
-from .evaluation.models import EvaluationDocument
 from .evaluation.router import router as evaluation_router
 from .company.models import CompanyDocument
 from .company.router import router as company_router
@@ -49,7 +48,6 @@ async def db_lifespan(app: MongoFastAPI):
     await init_beanie(database=app.database, document_models=[
         ExampleDocument,
         RFQDocument,
-        EvaluationDocument,
         CompanyDocument
     ])
 
