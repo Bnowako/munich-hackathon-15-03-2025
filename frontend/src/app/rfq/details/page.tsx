@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/accordion";
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css';
+import { RequirementRow } from "./RequirementRow";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
@@ -117,7 +118,7 @@ export default function RFQDetailsPage() {
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
-    
+
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -160,89 +161,25 @@ export default function RFQDetailsPage() {
                                         <TableHead className="max-w-[300px]">Requirement</TableHead>
                                         <TableHead>Evaluation</TableHead>
                                         <TableHead className="max-w-[300px]">Reason</TableHead>
-                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {rfq.requirements.map((req, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell 
-                                                className="max-w-[150px] cursor-pointer hover:bg-gray-50"
-                                            >
-                                                {req.requirement}
-                                            </TableCell>
-                                            <TableCell>
-                                                {(() => {
-                                                    const status = rfq.requirements[index].evaluation.evaluation;
-                                                    switch (status) {
-                                                        case "ELIGIBLE":
-                                                            return "✅";
-                                                        case "NOT_ELIGIBLE":
-                                                            return "🛑";
-                                                        case "IN_PROGRESS":
-                                                            return (
-                                                                <div className="flex items-center">
-                                                                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-                                                                    <span className="ml-2">🤖 In progress</span>
-                                                                </div>
-                                                            );
-                                                        case "INITIAL":
-                                                            return "🫎";
-                                                        default:
-                                                            return "🫥";
-                                                    }
-                                                })()}
-                                            </TableCell>
-                                            <TableCell className="max-w-[300px]">
-                                                {editingReasons.has(index) ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <textarea
-                                                            className="w-full p-2 border rounded resize-none overflow-hidden"
-                                                            value={
-                                                                rfq.requirements[index].evaluation.reason || ""
-                                                            }
-                                                            onChange={(e) => {
-                                                                autoResizeTextArea(e);
-                                                                const newRfq = {...rfq};
-                                                                newRfq.requirements[index].evaluation.reason = e.target.value;
-                                                                setRFQ(newRfq);
-                                                            }}
-                                                            onFocus={(e) => autoResizeTextArea(e)}
-                                                            style={{ height: "auto" }}
-                                                            rows={1}
-                                                            autoFocus
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div
-                                                        className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
-                                                        onClick={() => startEditing(index)}
-                                                    >
-                                                        {rfq.requirements[index].evaluation.reason ||
-                                                            "No reason provided"}
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => console.log("TODO")}
-                                                    disabled={
-                                                        !modifiedReasons.has(index) ||
-                                                        rfq.requirements[index].evaluation.evaluation === "IN_PROGRESS"
-                                                    }
-                                                >
-                                                    Reevaluate
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
+                                        <RequirementRow
+                                            key={index}
+                                            requirement={req}
+                                            onUpdate={(value) => {
+                                                const newRfq = { ...rfq };
+                                                newRfq.requirements[index].evaluation.reason = value;
+                                                setRFQ(newRfq);
+                                            }}
+                                        />
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
                     </div>
-                
+
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Lots</h2>
                         <div className="overflow-x-auto">
@@ -262,7 +199,7 @@ export default function RFQDetailsPage() {
                                                 {lot.description && (
                                                     <p className="text-gray-700 mb-4">{lot.description}</p>
                                                 )}
-                                                
+
                                                 {lot.requirements && lot.requirements.length > 0 ? (
                                                     <Table>
                                                         <TableHeader>
@@ -270,35 +207,19 @@ export default function RFQDetailsPage() {
                                                                 <TableHead>Requirement</TableHead>
                                                                 <TableHead>Evaluation</TableHead>
                                                                 <TableHead>Reason</TableHead>
-                                                                <TableHead>Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
-                                                            {lot.requirements.map((requirement, requirementIndex) => (
-                                                                
-                                                                <TableRow key={requirementIndex}>
-                                                                    <TableCell>{requirement.requirement  || `Requirement ${requirementIndex + 1}`}</TableCell>
-                                                                    <TableCell>
-                                                                        {requirement.evaluation.reason || "No description"}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {(() => {
-                                                                            const status = requirement.evaluation.evaluation;
-                                                                            switch (status) {
-                                                                                case "ELIGIBLE":
-                                                                                    return "✅";
-                                                                                case "NOT_ELIGIBLE":
-                                                                                    return "🛑";
-                                                                                default:
-                                                                                    return "🫥";
-                                                                            }
-                                                                        })()}
-                                                                    </TableCell>
-
-                                                                    <TableCell>
-                                                                      
-                                                                    </TableCell>
-                                                                </TableRow>
+                                                        {lot.requirements.map((req, index) => (
+                                                                <RequirementRow
+                                                                    key={index}
+                                                                    requirement={req}
+                                                                    onUpdate={(value) => {
+                                                                        const newRfq = { ...rfq };
+                                                                        newRfq.requirements[index].evaluation.reason = value;
+                                                                        setRFQ(newRfq);
+                                                                    }}
+                                                                />
                                                             ))}
                                                         </TableBody>
                                                     </Table>
@@ -312,7 +233,7 @@ export default function RFQDetailsPage() {
                             </Accordion>
                         </div>
                     </div>
-                
+
                 </div>
             </div>
         </div>
