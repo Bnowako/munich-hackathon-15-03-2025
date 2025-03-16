@@ -12,6 +12,19 @@ Work with TenderPilot to
 - screen tenders faster, and
 - spend time preparing the tenders you are most likely to win.
 
+
+## TenderPilot Architecture
+
+## TenderPilot Architecture
+
+<img src="docs/archi.png" alt="TenderPilot Architecture" width="800" height="600">
+
+
+
+
+
+
+
 ## Components and Data Flow
 
 ```mermaid
