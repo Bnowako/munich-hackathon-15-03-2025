@@ -21,7 +21,7 @@ async def get_rfqs() -> List[RFQResponse]:
                 requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source, evaluation=RequirementEvaluationResponse(evaluation=requirement.evaluation.evaluation, reason=requirement.evaluation.reason)) for requirement in rfq.enhanced.requirements],
                 raw_xml=rfq.parsed.raw_xml,
                 lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source, evaluation=RequirementEvaluationResponse(evaluation=requirement.evaluation.evaluation, reason=requirement.evaluation.reason)) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots],
-                status="TODO blazej broke it"
+                status=rfq.get_status()
             ))
     return result
 
@@ -41,5 +41,5 @@ async def get_rfq(rfq_id: str) -> RFQResponse:
         requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source, evaluation=RequirementEvaluationResponse(evaluation=requirement.evaluation.evaluation, reason=requirement.evaluation.reason)) for requirement in rfq.enhanced.requirements],
         raw_xml=rfq.parsed.raw_xml,
         lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source, evaluation=RequirementEvaluationResponse(evaluation=requirement.evaluation.evaluation, reason=requirement.evaluation.reason)) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots],
-        status="TODO blazej broke it"
+        status=rfq.get_status()
     )

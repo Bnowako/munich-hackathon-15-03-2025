@@ -39,3 +39,15 @@ class EnhancedRFQ(BaseModel):
 class RFQDocument(Document):
     parsed: ParsedXmlRfQ
     enhanced: EnhancedRFQ | None = None
+
+
+    def get_status(self) -> str:
+        if self.enhanced is None:
+            return "open"
+        if all(req.evaluation.evaluation == "INITIAL" for req in self.enhanced.requirements):
+            return "open"
+        if any(req.evaluation.evaluation == "UNKNOWN" for req in self.enhanced.requirements):
+            return "in evaluation"
+        else:
+            return "closed"
+        
