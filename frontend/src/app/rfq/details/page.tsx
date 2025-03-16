@@ -47,7 +47,7 @@ export default function RFQDetailsPage() {
         if (newRfq.lots[lotIndex].requirements) {
             newRfq.lots[lotIndex].requirements![reqIndex].evaluation.reason = value;
         }
-        await updateRequirementEvaluation(id!, reqIndex, value);
+        await updateRequirementEvaluation(id!, reqIndex, value, lotIndex);
         setRFQ(newRfq);
     };
 

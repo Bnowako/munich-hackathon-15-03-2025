@@ -13,7 +13,7 @@ llm_evaluation = llm.with_structured_output(FactsUpdate)  # type: ignore
 
 
 async def llm_update_company_facts(
-    facts: List[str], reason: str, updated_reason: str, requirement_source: str
+    facts: List[str], reason: str, updated_reason: str
 ) -> FactsUpdate:
     prompt = f"""
                                           You are a helpful assistant that updates the facts of a company.
@@ -21,7 +21,6 @@ async def llm_update_company_facts(
                                           
                                           There were some evaluations done that were not correct. User has provided a reason for the update and the updated reason.
                                           The reason for the update is: {reason}
-                                          It was evaluated based on the following source: {requirement_source}
 
                                           The updated reason is: {updated_reason}
                                           Please update the facts of the company.
