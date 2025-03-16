@@ -1,58 +1,37 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-    getEvaluation,
-    getRFQ,
-    requestEvaluation,
-    updateRequirementEvaluation,
-} from "@/lib/api";
-import { EvaluationResponse, RFQResponse } from "@/lib/apiTypes";
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import Link from "next/link";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import hljs from 'highlight.js';
+import { Button } from "@/components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import {
+    getRFQ,
+    requestEvaluation
+} from "@/lib/api";
+import { RFQResponse } from "@/lib/apiTypes";
 import 'highlight.js/styles/github.css';
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { RequirementRow } from "./RequirementRow";
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
-    const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
-    const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
-    const [isEditing, setIsEditing] = useState<boolean>(false);
-    const isEditingRef = useRef(false);
+    const [isEditing, setIsEditing] = useState(false);
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
 
-    // Sync isEditing with ref
     useEffect(() => {
-        isEditingRef.current = isEditing;
-    }, [isEditing]);
-
-    useEffect(() => {
-        if (!id) return;
+        if (!id || isEditing) return;
 
         let intervalId: NodeJS.Timeout | null = null;
         let isMounted = true;
@@ -63,14 +42,11 @@ export default function RFQDetailsPage() {
                 if (!isMounted) return;
                 setRFQ(rfqData);
 
-
                 // Set up interval to update evaluation every second
                 intervalId = setInterval(async () => {
-                    if (!isEditingRef.current) {
-                        const rfqData = await getRFQ(id!);
-                        if (!isMounted) return;
-                        setRFQ(rfqData);
-                    }
+                    const rfqData = await getRFQ(id!);
+                    if (!isMounted) return;
+                    setRFQ(rfqData);
                 }, 1000);
             } catch (error) {
                 console.error("Error fetching RFQ data:", error);
@@ -84,40 +60,13 @@ export default function RFQDetailsPage() {
             isMounted = false;
             if (intervalId) clearInterval(intervalId);
         };
-    }, [id]);
-
-
-    // Reset modified state when new evaluation data comes in
-    useEffect(() => {
-        setModifiedReasons(new Set());
-    }, [id]);
+    }, [id, isEditing]);
 
     const requestEvaluationClicked = async () => {
         if (!rfq) return;
         const evaluation = await requestEvaluation(rfq.id);
         console.log(evaluation);
     };
-
-    const startEditing = (index: number) => {
-        // Switch to editing the new textarea
-        setEditingReasons(new Set([index]));
-        setIsEditing(true);
-    };
-
-    const stopEditing = () => {
-        setEditingReasons(new Set());
-        setIsEditing(false);
-    };
-
-
-    const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const textarea = e.target;
-        // Reset height to auto to get the correct scrollHeight
-        textarea.style.height = "auto";
-        // Set the height to match the content
-        textarea.style.height = `${textarea.scrollHeight}px`;
-    };
-
 
     if (!id) {
         return (
@@ -173,6 +122,7 @@ export default function RFQDetailsPage() {
                                                 newRfq.requirements[index].evaluation.reason = value;
                                                 setRFQ(newRfq);
                                             }}
+                                            onEditingChange={setIsEditing}
                                         />
                                     ))}
                                 </TableBody>
@@ -219,6 +169,7 @@ export default function RFQDetailsPage() {
                                                                         newRfq.requirements[index].evaluation.reason = value;
                                                                         setRFQ(newRfq);
                                                                     }}
+                                                                    onEditingChange={setIsEditing}
                                                                 />
                                                             ))}
                                                         </TableBody>

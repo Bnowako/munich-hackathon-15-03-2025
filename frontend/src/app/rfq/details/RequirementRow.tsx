@@ -5,9 +5,10 @@ import { useState, KeyboardEvent, ChangeEvent, useRef, useEffect } from "react";
 interface RequirementRowProps {
     requirement: Requirement;
     onUpdate: (reason: string) => void;
+    onEditingChange: (isEditing: boolean) => void;
 }
 
-export function RequirementRow({ requirement, onUpdate }: RequirementRowProps) {
+export function RequirementRow({ requirement, onUpdate, onEditingChange }: RequirementRowProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [reason, setReason] = useState(requirement.evaluation.reason || "");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,6 +32,7 @@ export function RequirementRow({ requirement, onUpdate }: RequirementRowProps) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             onUpdate(reason);
+            onEditingChange(false);
             setIsEditing(false);
         }
     };
@@ -40,12 +42,14 @@ export function RequirementRow({ requirement, onUpdate }: RequirementRowProps) {
     };
 
     const startEditing = () => {
+        onEditingChange(true);
         setInitialReason(reason);
         setIsEditing(true);
     };
 
     const handleBlur = () => {
         setReason(initialReason);
+        onEditingChange(false);
         setIsEditing(false);
     };
 
