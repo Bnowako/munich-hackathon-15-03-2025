@@ -133,9 +133,9 @@ export default function RFQDetailsPage() {
                     <div>
                         <h2 className="text-xl font-semibold mb-2">Lots</h2>
                         <div className="overflow-x-auto">
-                            <Accordion type="single" collapsible className="w-full">
+                            <Accordion defaultValue={rfq.lots.map((_, index) => `lot-${index}`)} type="multiple" className="w-full">
                                 {rfq.lots.map((lot, index) => (
-                                    <AccordionItem key={index} value={`lot-${index}`}>
+                                    <AccordionItem  key={index} value={`lot-${index}`}>
                                         <AccordionTrigger className="hover:bg-gray-50 px-4">
                                             <div className="flex justify-between w-full">
                                                 <span>{lot.title || `Lot ${index + 1}`}</span>
