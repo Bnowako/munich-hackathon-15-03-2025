@@ -8,7 +8,7 @@ class FactsUpdate(BaseModel):
     reason: str
 
 
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+llm = ChatOpenAI(model="gpt-4o", temperature=0.1)
 llm_evaluation = llm.with_structured_output(FactsUpdate)  # type: ignore
 
 
@@ -22,7 +22,7 @@ async def llm_update_company_facts(
                                           There were some evaluations done that were not correct. User has provided a reason for the update and the updated reason.
                                           The reason for the update is: {reason}
                                           It was evaluated based on the following source: {requirement_source}
-                                          
+
                                           The updated reason is: {updated_reason}
                                           Please update the facts of the company.
                                           You should only update the facts that are related to the updated reason.
