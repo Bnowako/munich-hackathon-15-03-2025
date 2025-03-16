@@ -1,10 +1,24 @@
 from typing import List, Optional
+from app.evaluation.models import EvaluationDocument
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException
 from .models import RFQDocument
 from .schemas import RFQResponse, RequirementResponse, LotResponse
 
 router = APIRouter(prefix="/rfq", tags=["rfq"])
+
+
+async def get_rfq_status(rfq: RFQDocument) -> str:
+    evaluation = await EvaluationDocument.find_one(EvaluationDocument.rfq_id == str(rfq.id))
+    if evaluation is None:
+        status = "open"
+    else:
+        all_evaluated = all(
+            item.evaluation.evaluation in ["ELIGIBLE", "NOT_ELIGIBLE"]
+            for item in evaluation.requirements_metadata
+        )
+        status = "closed" if all_evaluated else "in evaluation"
+    return status
 
 @router.get("/")
 async def get_rfqs() -> List[RFQResponse]:
@@ -19,7 +33,8 @@ async def get_rfqs() -> List[RFQResponse]:
                 description=rfq.enhanced.description,
                 requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in rfq.enhanced.requirements],
                 raw_xml=rfq.parsed.raw_xml,
-                lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots]
+                lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots],
+                status=await get_rfq_status(rfq)
             ))
     return result
 
@@ -38,5 +53,6 @@ async def get_rfq(rfq_id: str) -> RFQResponse:
         description=rfq.enhanced.description,
         requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in rfq.enhanced.requirements],
         raw_xml=rfq.parsed.raw_xml,
-        lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots]
+        lots=[LotResponse(title=lot.title, description=lot.description, requirements=[RequirementResponse(requirement=requirement.requirement, requirement_source=requirement.requirement_source) for requirement in lot.requirements], lot_source=lot.lot_source) for lot in rfq.enhanced.lots],
+        status=await get_rfq_status(rfq)
     )

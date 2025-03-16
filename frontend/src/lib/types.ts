@@ -276,6 +276,8 @@ export interface components {
             raw_xml: string;
             /** Lots */
             lots: components["schemas"]["LotResponse"][];
+            /** Status */
+            status: string;
         };
         /** RFQStatusResponse */
         RFQStatusResponse: {

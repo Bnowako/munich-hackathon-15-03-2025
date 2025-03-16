@@ -17,3 +17,4 @@ class RFQResponse(BaseModel):
     requirements: list[RequirementResponse]
     raw_xml: str
     lots: list[LotResponse]
+    status: str
