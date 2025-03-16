@@ -38,20 +38,12 @@ import 'highlight.js/styles/github.css';
 
 export default function RFQDetailsPage() {
     const [rfq, setRFQ] = useState<RFQResponse | null>(null);
-    const [evaluation, setEvaluation] = useState<EvaluationResponse | null>(null);
-    const [requirementNotes, setRequirementNotes] = useState<{ [key: number]: string }>({});
     const [modifiedReasons, setModifiedReasons] = useState<Set<number>>(new Set());
     const [editingReasons, setEditingReasons] = useState<Set<number>>(new Set());
     const [isEditing, setIsEditing] = useState<boolean>(false);
-    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-    const [selectedRequirement, setSelectedRequirement] = useState<number | null>(null);
     const isEditingRef = useRef(false);
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
-    const [formattedContent, setFormattedContent] = useState<string>("");
-    const [viewMode, setViewMode] = useState<'xml' | 'json'>('xml');
-    const [selectedLot, setSelectedLot] = useState<any | null>(null);
-    const [lotsDialogOpen, setLotsDialogOpen] = useState<boolean>(false);
 
     // Sync isEditing with ref
     useEffect(() => {
@@ -93,49 +85,6 @@ export default function RFQDetailsPage() {
         };
     }, [id]);
 
-    const handleNoteChange = (index: number, note: string) => {
-        setRequirementNotes((prev) => ({
-            ...prev,
-            [index]: note,
-        }));
-    };
-
-    const handleReasonChange = async (index: number, newReason: string) => {
-        if (!rfq) return;
-
-        const originalReason = rfq.requirements[index]?.evaluation?.reason || "";
-
-        // Track modified state
-        if (newReason !== originalReason) {
-            setModifiedReasons((prev) => new Set(prev).add(index));
-        } else {
-            setModifiedReasons((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(index);
-                return newSet;
-            });
-        }
-
-        const updatedMetadata = {
-            ...rfq.requirements,
-            [index]: {
-                ...rfq.requirements[index],
-                evaluation: {
-                    ...rfq.requirements[index].evaluation,
-                    reason: newReason,
-                },
-            },
-        };
-
-        setRFQ((prev) =>
-            prev
-                ? {
-                    ...prev,
-                    requirements: updatedMetadata,
-                }
-                : null
-        );
-    };
 
     // Reset modified state when new evaluation data comes in
     useEffect(() => {
@@ -159,35 +108,6 @@ export default function RFQDetailsPage() {
         setIsEditing(false);
     };
 
-    const handleReevaluation = async (index: number) => {
-        if (!evaluation || !rfq) return;
-
-        const requirementMetadata = evaluation.requirements_metadata[index];
-        const updatedReason = requirementMetadata?.evaluation?.reason;
-        if (!updatedReason || updatedReason === "") return;
-
-        console.log("Reevaluating requirement:", {
-            index,
-            metadata: requirementMetadata,
-            updatedReason,
-        });
-
-        const updatedEvaluation = await updateRequirementEvaluation(rfq.id, {
-            requirement: requirementMetadata.requirement,
-            updated_reason: updatedReason,
-        });
-
-        // Clear the modified state for this requirement
-        setModifiedReasons((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(index);
-            return newSet;
-        });
-
-        // Close all textareas and exit editing mode
-        setEditingReasons(new Set());
-        setIsEditing(false);
-    };
 
     const autoResizeTextArea = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const textarea = e.target;
@@ -197,55 +117,7 @@ export default function RFQDetailsPage() {
         textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
-    const handleRequirementClick = (index: number) => {
-        setSelectedRequirement(index);
-        setDialogOpen(true);
-    };
-
-    // Add this function to format XML
-    const formatXML = (xml: string): string => {
-        let formatted = '';
-        let indent = '';
-        
-        xml.split(/>\s*</).forEach(function(node) {
-            if (node.match(/^\/\w/)) {
-                // Decrease indent for closing tag
-                indent = indent.substring(2);
-            }
-            
-            formatted += indent + '<' + node + '>\n';
-            
-            if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith("?")) {
-                // Increase indent for opening tag (not self-closing)
-                indent += '  ';
-            }
-        });
-        
-        return formatted.substring(1, formatted.length - 2);
-    };
     
-    // Update the dialog content when a requirement is selected
-    useEffect(() => {
-        if (selectedRequirement !== null && rfq && evaluation) {
-            // Check if raw_xml exists
-            if (rfq.raw_xml) {
-                // Use the raw XML directly
-                const formatted = formatXML(rfq.raw_xml);
-                setFormattedContent(formatted);
-                
-                // Apply syntax highlighting after the component renders
-                setTimeout(() => {
-                    document.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block as HTMLElement);
-                    });
-                }, 0);
-            } else {
-                // Fallback if raw_xml doesn't exist
-                setFormattedContent("No raw XML data available");
-            }
-        }
-    }, [selectedRequirement, rfq, evaluation]);
-
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -296,13 +168,12 @@ export default function RFQDetailsPage() {
                                         <TableRow key={index}>
                                             <TableCell 
                                                 className="max-w-[150px] cursor-pointer hover:bg-gray-50"
-                                                onClick={() => handleRequirementClick(index)}
                                             >
                                                 {req.requirement}
                                             </TableCell>
                                             <TableCell>
                                                 {(() => {
-                                                    const status = evaluation?.requirements_metadata[index]?.evaluation?.evaluation;
+                                                    const status = rfq.requirements[index].evaluation.evaluation;
                                                     switch (status) {
                                                         case "ELIGIBLE":
                                                             return "✅";
@@ -328,11 +199,13 @@ export default function RFQDetailsPage() {
                                                         <textarea
                                                             className="w-full p-2 border rounded resize-none overflow-hidden"
                                                             value={
-                                                                evaluation?.requirements_metadata[index]?.evaluation?.reason || ""
+                                                                rfq.requirements[index].evaluation.reason || ""
                                                             }
                                                             onChange={(e) => {
-                                                                handleReasonChange(index, e.target.value);
                                                                 autoResizeTextArea(e);
+                                                                const newRfq = {...rfq};
+                                                                newRfq.requirements[index].evaluation.reason = e.target.value;
+                                                                setRFQ(newRfq);
                                                             }}
                                                             onFocus={(e) => autoResizeTextArea(e)}
                                                             style={{ height: "auto" }}
@@ -345,7 +218,7 @@ export default function RFQDetailsPage() {
                                                         className="min-h-[2rem] p-2 cursor-pointer hover:bg-gray-50 rounded"
                                                         onClick={() => startEditing(index)}
                                                     >
-                                                        {evaluation?.requirements_metadata[index]?.evaluation?.reason ||
+                                                        {rfq.requirements[index].evaluation.reason ||
                                                             "No reason provided"}
                                                     </div>
                                                 )}
@@ -354,10 +227,10 @@ export default function RFQDetailsPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => handleReevaluation(index)}
+                                                    onClick={() => console.log("TODO")}
                                                     disabled={
                                                         !modifiedReasons.has(index) ||
-                                                        evaluation?.requirements_metadata[index]?.evaluation?.evaluation === "IN_PROGRESS"
+                                                        rfq.requirements[index].evaluation.evaluation === "IN_PROGRESS"
                                                     }
                                                 >
                                                     Reevaluate
@@ -394,35 +267,36 @@ export default function RFQDetailsPage() {
                                                     <Table>
                                                         <TableHeader>
                                                             <TableRow>
-                                                                <TableHead>Item</TableHead>
-                                                                <TableHead>Description</TableHead>
-                                                                <TableHead>Quantity</TableHead>
+                                                                <TableHead>Requirement</TableHead>
+                                                                <TableHead>Evaluation</TableHead>
+                                                                <TableHead>Reason</TableHead>
                                                                 <TableHead>Actions</TableHead>
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
                                                             {lot.requirements.map((requirement, requirementIndex) => (
+                                                                
                                                                 <TableRow key={requirementIndex}>
-                                                                    <TableCell>{requirement.requirement || `Requirement ${requirementIndex + 1}`}</TableCell>
-                                                                    <TableCell className="max-w-[300px]">
-                                                                        {requirement.requirement_source || "No description"}
+                                                                    <TableCell>{requirement.requirement  || `Requirement ${requirementIndex + 1}`}</TableCell>
+                                                                    <TableCell>
+                                                                        {requirement.evaluation.reason || "No description"}
                                                                     </TableCell>
                                                                     <TableCell>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="sm"
-                                                                            onClick={() => {
-                                                                                setSelectedLot({
-                                                                                    lot: lot,
-                                                                                    requirement: requirement,
-                                                                                    lotIndex: index,
-                                                                                    requirementIndex: requirementIndex
-                                                                                });
-                                                                                setLotsDialogOpen(true);
-                                                                            }}
-                                                                        >
-                                                                            View Details
-                                                                        </Button>
+                                                                        {(() => {
+                                                                            const status = requirement.evaluation.evaluation;
+                                                                            switch (status) {
+                                                                                case "ELIGIBLE":
+                                                                                    return "✅";
+                                                                                case "NOT_ELIGIBLE":
+                                                                                    return "🛑";
+                                                                                default:
+                                                                                    return "🫥";
+                                                                            }
+                                                                        })()}
+                                                                    </TableCell>
+
+                                                                    <TableCell>
+                                                                      
                                                                     </TableCell>
                                                                 </TableRow>
                                                             ))}
@@ -441,134 +315,6 @@ export default function RFQDetailsPage() {
                 
                 </div>
             </div>
-
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Requirement Details</DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        {selectedRequirement !== null && rfq && evaluation && (
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">
-                                    Requirement: {rfq.requirements[selectedRequirement].requirement}
-                                </h3>
-                                
-                                <div className="flex space-x-2 mb-4">
-                                    <Button 
-                                        variant={viewMode === 'xml' ? 'default' : 'outline'} 
-                                        size="sm"
-                                        onClick={() => setViewMode('xml')}
-                                    >
-                                        XML View
-                                    </Button>
-                                    <Button 
-                                        variant={viewMode === 'json' ? 'default' : 'outline'} 
-                                        size="sm"
-                                        onClick={() => setViewMode('json')}
-                                    >
-                                        JSON View
-                                    </Button>
-                                </div>
-                                
-                                {/* XML View */}
-                                {viewMode === 'xml' && (
-                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
-                                        {rfq.raw_xml ? (
-                                            <pre className="text-sm">
-                                                <code className="language-xml">{formattedContent}</code>
-                                            </pre>
-                                        ) : (
-                                            <div className="text-amber-600 p-2 bg-amber-50 rounded">
-                                                No raw XML data available for this RFQ
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                
-                                {/* JSON View */}
-                                {viewMode === 'json' && (
-                                    <div className="bg-gray-100 p-4 rounded-md overflow-x-auto">
-                                        <pre className="text-sm whitespace-pre-wrap">
-                                            {JSON.stringify(
-                                                {
-                                                    requirement: rfq.requirements[selectedRequirement],
-                                                    evaluation: evaluation.requirements_metadata[selectedRequirement],
-                                                    rfq: rfq,
-                                                },
-                                                null,
-                                                2
-                                            )}
-                                        </pre>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={lotsDialogOpen} onOpenChange={setLotsDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Lot Item Details</DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4">
-                        {selectedLot && (
-                            <div>
-                                <h3 className="text-lg font-semibold mb-2">
-                                    {selectedLot.item.name || `Item ${selectedLot.itemIndex + 1}`}
-                                </h3>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <h4 className="font-medium text-gray-700">Lot Information</h4>
-                                        <p><span className="font-medium">Title:</span> {selectedLot.lot.title || `Lot ${selectedLot.lotIndex + 1}`}</p>
-                                        {selectedLot.lot.description && (
-                                            <p><span className="font-medium">Description:</span> {selectedLot.lot.description}</p>
-                                        )}
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 className="font-medium text-gray-700">Item Details</h4>
-                                        <p><span className="font-medium">Description:</span> {selectedLot.item.description || "No description"}</p>
-                                        <p><span className="font-medium">Quantity:</span> {selectedLot.item.quantity || "N/A"}</p>
-                                        {selectedLot.item.unit_price && (
-                                            <p><span className="font-medium">Unit Price:</span> {selectedLot.item.unit_price}</p>
-                                        )}
-                                        {selectedLot.item.specifications && (
-                                            <div>
-                                                <h4 className="font-medium text-gray-700 mt-2">Specifications</h4>
-                                                <ul className="list-disc pl-5">
-                                                    {Object.entries(selectedLot.item.specifications).map(([key, value], i) => (
-                                                        <li key={i}><span className="font-medium">{key}:</span> {String(value)}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                {/* Additional metadata or actions could go here */}
-                                <div className="bg-gray-100 p-4 rounded-md mt-4">
-                                    <h4 className="font-medium text-gray-700 mb-2">Raw Data</h4>
-                                    <pre className="text-sm whitespace-pre-wrap">
-                                        {JSON.stringify(selectedLot.item, null, 2)}
-                                    </pre>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button 
-                            variant="outline" 
-                            onClick={() => setLotsDialogOpen(false)}
-                        >
-                            Close
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }
