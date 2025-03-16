@@ -12,7 +12,7 @@ Work with TenderPilot to
 - screen tenders faster, and
 - spend time preparing the tenders you are most likely to win.
 
-## Application Architecture
+## Components and Data Flow
 
 ```mermaid
 sequenceDiagram
