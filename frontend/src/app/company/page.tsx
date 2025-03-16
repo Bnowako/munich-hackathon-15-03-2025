@@ -175,6 +175,7 @@ export default function CompanyPage() {
         <h1 className="text-2xl font-bold">
           {selectedCompany ? `Company Profile` : "Loading..."}
         </h1>
+        <p className="text-lg text-muted-foreground mt-2">TenderPilot bases it's evalation on the facts saved in this profile.</p>
       </div>
 
       {selectedCompany && (

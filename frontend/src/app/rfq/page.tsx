@@ -90,6 +90,7 @@ export default function OverviewPage() {
     return (
         <div className="container mx-auto">
             <h1 className="text-2xl font-bold my-5">RFQs</h1>
+            <p className="text-lg text-muted-foreground mb-6">Based on TenderPilots pre-processing, these RFQs are worth a look.</p>
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
