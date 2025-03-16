@@ -16,10 +16,17 @@ class Requirement(BaseModel):
     requirement: str
     requirement_source: str
 
+class Lot(BaseModel):
+    title: str
+    description: str
+    requirements: list[Requirement]
+    lot_source: str
+
 class EnhancedRFQ(BaseModel):
     title: str
     description: str
     requirements: list[Requirement]
+    lots: list[Lot]
 
 
 class RFQDocument(Document):
