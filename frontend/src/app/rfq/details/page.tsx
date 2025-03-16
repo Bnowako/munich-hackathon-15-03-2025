@@ -89,6 +89,20 @@ export default function RFQDetailsPage() {
         console.log(evaluation);
     };
 
+    const downloadXml = () => {
+        if (!rfq?.raw_xml) return;
+        
+        const blob = new Blob([rfq.raw_xml], { type: 'application/xml' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rfq-${rfq.id}.xml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    };
+
     if (!id) {
         return (
             <div className="container mx-auto p-5">
@@ -118,7 +132,8 @@ export default function RFQDetailsPage() {
                         <p className="text-gray-700 whitespace-pre-wrap">{rfq.description}</p>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+                        <Button onClick={downloadXml} variant="outline">Download XML</Button>
                         <Button onClick={requestEvaluationClicked}>Request evaluation</Button>
                     </div>
 
