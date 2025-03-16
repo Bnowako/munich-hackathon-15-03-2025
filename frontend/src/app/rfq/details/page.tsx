@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/table";
 import {
     getRFQ,
-    requestEvaluation
+    requestEvaluation,
+    updateRequirementEvaluation
 } from "@/lib/api";
 import { RFQResponse } from "@/lib/apiTypes";
 import 'highlight.js/styles/github.css';
@@ -30,21 +31,23 @@ export default function RFQDetailsPage() {
     const searchParams = useSearchParams();
     const id = searchParams.get("id");
 
-    const onGeneralRequirementUpdate = (index: number, value: string) => {
+    const onGeneralRequirementUpdate = async (index: number, value: string) => {
         if (!rfq) return;
         console.log("onGeneralRequirementUpdate", index, value);
         const newRfq = { ...rfq };
         newRfq.requirements[index].evaluation.reason = value;
+        await updateRequirementEvaluation(id!, index, value);
         setRFQ(newRfq);
     };
 
-    const onLotRequirementUpdate = (lotIndex: number, reqIndex: number, value: string) => {
+    const onLotRequirementUpdate = async (lotIndex: number, reqIndex: number, value: string) => {
         if (!rfq) return;
         console.log("onLotRequirementUpdate", lotIndex, reqIndex, value);
         const newRfq = { ...rfq };
         if (newRfq.lots[lotIndex].requirements) {
             newRfq.lots[lotIndex].requirements![reqIndex].evaluation.reason = value;
         }
+        await updateRequirementEvaluation(id!, reqIndex, value);
         setRFQ(newRfq);
     };
 

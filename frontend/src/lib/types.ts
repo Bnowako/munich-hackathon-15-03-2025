@@ -82,8 +82,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Evaluation */
-        get: operations["get_evaluation_evaluation__rfq_id__get"];
+        get?: never;
         /** Request Evaluation */
         put: operations["request_evaluation_evaluation__rfq_id__put"];
         post?: never;
@@ -220,15 +219,6 @@ export interface components {
             /** Running Text */
             running_text: string;
         };
-        /** EvaluationResponse */
-        EvaluationResponse: {
-            /** Id */
-            id: string;
-            /** Rfq Id */
-            rfq_id: string;
-            /** Requirements Metadata */
-            requirements_metadata: components["schemas"]["RequirementMetadataResponse"][];
-        };
         /** ExampleResponse */
         ExampleResponse: {
             /** Id */
@@ -288,11 +278,15 @@ export interface components {
             /** Status */
             status: string;
         };
-        /** RequirementMetadataResponse */
-        RequirementMetadataResponse: {
-            /** Requirement */
-            requirement: string;
-            evaluation: components["schemas"]["app__evaluation__schemas__RequirementEvaluationResponse"];
+        /** RequirementEvaluationResponse */
+        RequirementEvaluationResponse: {
+            /**
+             * Evaluation
+             * @enum {string}
+             */
+            evaluation: "ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL";
+            /** Reason */
+            reason: string;
         };
         /** RequirementResponse */
         RequirementResponse: {
@@ -300,12 +294,14 @@ export interface components {
             requirement: string;
             /** Requirement Source */
             requirement_source: string;
-            evaluation: components["schemas"]["app__rfq__schemas__RequirementEvaluationResponse"];
+            evaluation: components["schemas"]["RequirementEvaluationResponse"];
         };
         /** UpdateRequirementEvaluationRequest */
         UpdateRequirementEvaluationRequest: {
-            /** Requirement */
-            requirement: string;
+            /** Requirement Index */
+            requirement_index?: number | null;
+            /** Lot Index */
+            lot_index?: number | null;
             /** Updated Reason */
             updated_reason: string;
         };
@@ -317,23 +313,6 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
-        };
-        /** RequirementEvaluationResponse */
-        app__evaluation__schemas__RequirementEvaluationResponse: {
-            /** Evaluation */
-            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL") | null;
-            /** Reason */
-            reason?: string | null;
-        };
-        /** RequirementEvaluationResponse */
-        app__rfq__schemas__RequirementEvaluationResponse: {
-            /**
-             * Evaluation
-             * @enum {string}
-             */
-            evaluation: "ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL";
-            /** Reason */
-            reason: string;
         };
     };
     responses: never;
@@ -532,37 +511,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RFQResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_evaluation_evaluation__rfq_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                rfq_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EvaluationResponse"];
                 };
             };
             /** @description Validation Error */

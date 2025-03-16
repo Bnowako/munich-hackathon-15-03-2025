@@ -103,8 +103,8 @@ export async function getCurrentCompany(): Promise<CompanyResponse> {
     return data as CompanyResponse;
 }
 
-export async function updateRequirementEvaluation(id: string, evaluation: UpdateRequirementEvaluationRequest): Promise<EvaluationResponse> {
-    const { data, error } = await client.PUT("/evaluation/{rfq_id}/requirements", {params: {path: {rfq_id: id}}, body: evaluation});
+export async function updateRequirementEvaluation(id: string, requirementIndex: number, updatedReason: string): Promise<EvaluationResponse> {
+    const { data, error } = await client.PUT("/evaluation/{rfq_id}/requirements", {params: {path: {rfq_id: id}}, body: {requirement_index: requirementIndex, updated_reason: updatedReason}});
     if (error) handleApiError(error);
     return data as EvaluationResponse;
 }
