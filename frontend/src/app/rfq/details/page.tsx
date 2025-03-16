@@ -70,16 +70,13 @@ export default function RFQDetailsPage() {
                 if (!isMounted) return;
                 setRFQ(rfqData);
 
-                const ev = await getEvaluation(id!);
-                if (!isMounted) return;
-                setEvaluation(ev);
 
                 // Set up interval to update evaluation every second
                 intervalId = setInterval(async () => {
                     if (!isEditingRef.current) {
-                        const updatedEv = await getEvaluation(id!);
+                        const rfqData = await getRFQ(id!);
                         if (!isMounted) return;
-                        setEvaluation(updatedEv);
+                        setRFQ(rfqData);
                     }
                 }, 1000);
             } catch (error) {
@@ -104,9 +101,9 @@ export default function RFQDetailsPage() {
     };
 
     const handleReasonChange = async (index: number, newReason: string) => {
-        if (!evaluation) return;
+        if (!rfq) return;
 
-        const originalReason = evaluation.requirements_metadata[index]?.evaluation?.reason || "";
+        const originalReason = rfq.requirements[index]?.evaluation?.reason || "";
 
         // Track modified state
         if (newReason !== originalReason) {
@@ -120,21 +117,21 @@ export default function RFQDetailsPage() {
         }
 
         const updatedMetadata = {
-            ...evaluation.requirements_metadata,
+            ...rfq.requirements,
             [index]: {
-                ...evaluation.requirements_metadata[index],
+                ...rfq.requirements[index],
                 evaluation: {
-                    ...evaluation.requirements_metadata[index].evaluation,
+                    ...rfq.requirements[index].evaluation,
                     reason: newReason,
                 },
             },
         };
 
-        setEvaluation((prev) =>
+        setRFQ((prev) =>
             prev
                 ? {
                     ...prev,
-                    requirements_metadata: updatedMetadata,
+                    requirements: updatedMetadata,
                 }
                 : null
         );

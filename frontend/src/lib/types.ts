@@ -288,18 +288,11 @@ export interface components {
             /** Status */
             status: string;
         };
-        /** RequirementEvaluationResponse */
-        RequirementEvaluationResponse: {
-            /** Evaluation */
-            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL") | null;
-            /** Reason */
-            reason?: string | null;
-        };
         /** RequirementMetadataResponse */
         RequirementMetadataResponse: {
             /** Requirement */
             requirement: string;
-            evaluation: components["schemas"]["RequirementEvaluationResponse"];
+            evaluation: components["schemas"]["app__evaluation__schemas__RequirementEvaluationResponse"];
         };
         /** RequirementResponse */
         RequirementResponse: {
@@ -307,6 +300,7 @@ export interface components {
             requirement: string;
             /** Requirement Source */
             requirement_source: string;
+            evaluation: components["schemas"]["app__rfq__schemas__RequirementEvaluationResponse"];
         };
         /** UpdateRequirementEvaluationRequest */
         UpdateRequirementEvaluationRequest: {
@@ -323,6 +317,23 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** RequirementEvaluationResponse */
+        app__evaluation__schemas__RequirementEvaluationResponse: {
+            /** Evaluation */
+            evaluation?: ("ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL") | null;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** RequirementEvaluationResponse */
+        app__rfq__schemas__RequirementEvaluationResponse: {
+            /**
+             * Evaluation
+             * @enum {string}
+             */
+            evaluation: "ELIGIBLE" | "NOT_ELIGIBLE" | "UNKNOWN" | "IN_PROGRESS" | "INITIAL";
+            /** Reason */
+            reason: string;
         };
     };
     responses: never;
