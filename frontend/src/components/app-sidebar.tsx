@@ -1,6 +1,6 @@
 "use client"
 
-import { Building2, FileSpreadsheet, LayoutDashboard, Boxes } from "lucide-react"
+import { Building2, FileSpreadsheet, LayoutDashboard, Plane } from "lucide-react"
 import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
@@ -39,10 +39,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Boxes className="h-5 w-5" />
+            <Plane className="h-5 w-5" />
           </div>
           <h1 className="text-lg font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
-            GetRFQ
+            TenderPilot
           </h1>
         </div>
       </SidebarHeader>
