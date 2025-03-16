@@ -57,12 +57,12 @@ async def update_requirement_based_on_human_feedback(rfq_document: RFQDocument, 
 
     if requirement_index is not None and lot_index is not None:
         req = rfq_document.enhanced.lots[lot_index].requirements[requirement_index]
-        
-        await update_company_facts(company_id, req.evaluation.reason, updated_reason, req.requirement_source)
+
+        await update_company_facts(company_id, req.evaluation.reason, updated_reason)
         await handle_lot_requirement(rfq_document, lot_index, requirement_index, req, company_id)
     elif requirement_index is not None and lot_index is None:
         req = rfq_document.enhanced.requirements[requirement_index]
-        await update_company_facts(company_id, req.evaluation.reason, updated_reason, req.requirement_source)
+        await update_company_facts(company_id, req.evaluation.reason, updated_reason)
         await handle_requirement(rfq_document, requirement_index, req, company_id)
     else:
         raise HTTPException(status_code=400, detail="requirement_index and lot_index cannot both be None")

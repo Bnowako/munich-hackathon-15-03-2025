@@ -12,13 +12,13 @@ async def get_company_context(id: str) -> str:
     
     return f"Company: {company.name} Facts: {company.facts}"
 
-async def update_company_facts(id: str, reason: str, updated_reason: str, requirement_source: str):
-    logger.info(f"Updating company facts for {id}, reason: {reason}, updated_reason: {updated_reason}, requirement_source: {requirement_source}")
+async def update_company_facts(id: str, reason: str, updated_reason: str):
+    logger.info(f"Updating company facts for {id}, reason: {reason}, updated_reason: {updated_reason}")
     company = await CompanyDocument.find_one(CompanyDocument.id == ObjectId(id))
     if company is None:
         raise ValueError("Company not found")
     
-    updated_facts = await llm_update_company_facts(company.facts, reason, updated_reason, requirement_source)
+    updated_facts = await llm_update_company_facts(company.facts, reason, updated_reason)
     logger.info(f"Updated facts: {updated_facts.facts}")
     company.facts = updated_facts.facts
 
