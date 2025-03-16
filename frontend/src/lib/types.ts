@@ -144,6 +144,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/company/{company_id}/running-text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update Company With Running Text */
+        post: operations["update_company_with_running_text_company__company_id__running_text_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboard/": {
         parameters: {
             query?: never;
@@ -197,6 +214,11 @@ export interface components {
             name: string;
             /** Facts */
             facts: string[];
+        };
+        /** CompanyUpdateWithRunningText */
+        CompanyUpdateWithRunningText: {
+            /** Running Text */
+            running_text: string;
         };
         /** EvaluationResponse */
         EvaluationResponse: {
@@ -649,6 +671,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_company_with_running_text_company__company_id__running_text_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyUpdateWithRunningText"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

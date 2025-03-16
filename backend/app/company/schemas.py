@@ -8,6 +8,9 @@ class CompanyUpdate(BaseModel):
     name: str
     facts: list[str]
 
+class CompanyUpdateWithRunningText(BaseModel):
+    running_text: str
+
 class CompanyResponse(BaseModel):
     id: str
     name: str

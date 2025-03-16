@@ -28,3 +28,22 @@ async def llm_update_company_facts(
     
     result = await llm_evaluation.ainvoke(prompt)  # type: ignore
     return result  # type: ignore
+
+async def llm_update_company_facts_with_running_text(
+    facts: List[str], running_text: str
+) -> FactsUpdate:
+    prompt = f"""
+                                          You are a helpful assistant that updates the facts of a company.
+                                          The company has the following facts: {facts}
+                                          
+                                          The user has provided information about the company. 
+                                          The running text is: {running_text}
+
+                                          Please add and update the existing facts of the company with this information.
+                                          For complex information, or bullet points, split it into multiple facts.
+                                          Return the complete list of updated facts.
+                                          If the running text is not related to the facts, return the existing facts.
+                                          """
+    
+    result = await llm_evaluation.ainvoke(prompt)  # type: ignore
+    return result  # type: ignore
