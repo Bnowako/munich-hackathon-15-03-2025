@@ -27,6 +27,18 @@ const chartConfig = {
     label: "Desktop",
     color: "hsl(var(--chart-1))",
   },
+  green: {
+    label: "Green",
+    color: "hsl(var(--chart-2))",
+  },
+  yellow: {
+    label: "Yellow",
+    color: "hsl(var(--chart-3))",
+  },
+  red: {
+    label: "Red",
+    color: "hsl(var(--chart-4))",
+  },
   mobile: {
     label: "Mobile",
     color: "hsl(var(--chart-2))",
@@ -53,7 +65,8 @@ export default function Page() {
         setChartData(
           statusOrder.map(status => ({
             status,
-            count: statusCounts[status] || 0
+            count: statusCounts[status] || 0,
+            fill: status === 'open' ? 'var(--color-green)' : status === 'in evaluation' ? 'var(--color-yellow)' : 'var(--color-red)'
           }))
         );
       } catch (error) {
