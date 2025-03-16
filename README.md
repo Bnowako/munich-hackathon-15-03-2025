@@ -15,8 +15,6 @@ Work with TenderPilot to
 
 ## TenderPilot Architecture
 
-## TenderPilot Architecture
-
 <img src="docs/archi.png" alt="TenderPilot Architecture" width="800" height="600">
 
 
