@@ -269,12 +269,6 @@ export default function RFQDetailsPage() {
 
     return (
         <div className="container mx-auto p-5">
-            <div className="mb-4">
-                <Link href="/rfq" className="text-blue-600 hover:text-blue-800">
-                    ← Back to Overview
-                </Link>
-            </div>
-
             <div className="bg-white shadow-lg rounded-lg p-6">
                 <h1 className="text-3xl font-bold mb-6">{rfq.title}</h1>
 
