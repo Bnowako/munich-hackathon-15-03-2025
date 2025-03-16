@@ -88,7 +88,7 @@ async def parse_xml_files(folder: str, max_files: int = 10):
 
 async def main(save_to_db: bool = False):
     await init_db()
-    pased_rfqs = await parse_xml_files('resources', max_files=50)
+    pased_rfqs = await parse_xml_files('resources/demo', max_files=50)
 
     for i, rfq in enumerate(pased_rfqs):
         if i >= 5:
